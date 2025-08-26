@@ -1,0 +1,17 @@
+default perms, description and usage
+
+conditions in general commands and advanced broadcast
+
+add conditions
+
+add more functionality to the main command - debug info for commands
+
+more customizability -> maybe customizable command paths
+
+updater
+
+add variables
+
+add events
+
+Fixes:

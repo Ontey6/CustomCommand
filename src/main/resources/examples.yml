@@ -1,0 +1,80 @@
+################################
+##          Examples          ##
+################################
+
+# it is recommended you go through some of these examples and especially read these comments
+
+# note:
+# a ccmd is a command created with this plugin and means CustomCommand
+
+
+# The name of the command
+# This is also the command you type in chat. for this one: /ccmd-struct
+# constant; doesn't support placeholders
+ccmd-structure:
+  # A message sent to the player
+  # supports placeholders
+  message: 'Hello <player>, this is a message'
+
+  # A message sent to all players
+  # supports placeholders
+  broadcast: '&ebroadcast:&r Hello from <player>!'
+
+  # The commands executed as the player
+  # supports placeholders
+  commands:
+    - give <player> diamond[item_name='{"color":"dark_aqua","text":"This was given to you by command"}']
+
+  # The aliases this ccmd has
+  # Aliases are commands that do exactly the same actions as the main command
+  # e.g. '/ccmd-structure' does the same as '/ccmd-struct'
+  # constant; doesn't support placeholders
+  aliases:
+    - ccmd-struct
+
+  # The description of this ccmd
+  # Is shown when using '/help <ccmd>',
+  # so it should be helpful for someone who doesn't know what this ccmd does
+  # constant; doesn't support placeholders
+  description: 'this command showcases the structure of a ccmd'
+
+  # The usage message of this ccmd
+  # The usage message is shown when a command's execution method (onCommand / execute) returns false
+  # Is shown when using '/help <ccmd>'
+  # only supports '\n' for a new line and '<command>' for the command name (bc it can vary with aliases)
+  usage: 'Usage: /<command>'
+
+  # The permission node the player needs to execute and see this command
+  # The console and OP's have all permissions
+  # If a player doesn't have permission, and they type this into the chat, it will be red,
+  # and when executed, act like it doesn't exist
+  # constant; doesn't support placeholders
+  permission: 'ccmd.struct'
+
+ccmd-pingall:
+  message:
+    - '&d---------------------'
+    - '&enow pinging everyone!'
+    - '&d---------------------'
+  broadcast:
+    - '&d-------------------'
+    - '&b<player> pinged you'
+    - '&d-------------------'
+  permission: ccmd.pingall
+
+ccmd-advanced-bc:
+  broadcast:
+    range: 10
+    permission: ccmd.struct.bc
+    messages:
+      - 'Hello, &e<player>&r!'
+
+  permission: ccmd.advanced-bc
+
+ccmd-args:
+  args:
+    type: listed
+    list:
+      1: [give, remove]
+      2: []
+      3: [1, 8, 0]
