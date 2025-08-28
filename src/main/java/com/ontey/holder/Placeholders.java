@@ -51,4 +51,8 @@ public class Placeholders {
       
       return out.substring(delimiter.length());
    }
+   
+   static Placeholder ph(String placeholder, Object replacement) {
+      return Placeholder.of(placeholder, String.valueOf(replacement));
+   }
 }

@@ -55,3 +55,20 @@ adding-args:
       type: number # any numeric component
       range:
     #4: [] # listed arg support # not yet
+
+command-conditions:
+  # idea 1
+  commands:
+    - condition:
+        if: "<player.isOp>"
+        commands: []
+
+  # idea 2
+cmd:
+  commands:
+    label1: # Possibility to add labels, loops, recursion...
+      condition: "<player.isOp>" # optional
+      commands: []
+
+  # can still use normal format
+  commands: []

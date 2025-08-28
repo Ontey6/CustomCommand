@@ -4,14 +4,8 @@ format:
   # It is now safe to leave out suffix
   # The placeholder format: < ph >
   placeholder-format: '<%ph>'
-  # Placeholder format when there are args: < ph % args % >
-  # not used
-  placeholder-args-format: '<%ph%%args%>'
   # the action-holder format: < ! ah % args >
   actionholder-format: '<!%ah>'
-  # Actionholder format when there are args
-  # not used
-  actionholder-args-format: '<!%ah%%args%>'
 
 # the values accepted as true, everything else is false
 # CASE SENSITIVE
@@ -19,12 +13,14 @@ boolean-true:
   - 'true'
   - 'yes' # papi default
 
+
+
 dev:
   # Immediately updates commands when there are changes
   hotswap: false
 
-# the default values for the corresponding fields in a command
-defaults:
-  permission: 'ccmd.command.%cmd'
-  description: 'Server Command'
-  usage: '/<command>' # <command> -> command's name, \n -> new line
+  # the default values for the corresponding fields in a ccmd
+  defaults:
+    permission: 'ccmd.command.%cmd'
+    usage: '/<command>' # <command> -> command's name, \n -> new line
+    description: 'Server Command'

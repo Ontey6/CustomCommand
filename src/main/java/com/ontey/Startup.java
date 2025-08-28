@@ -1,6 +1,7 @@
 package com.ontey;
 
 import com.ontey.files.Commands;
+import com.ontey.files.Config;
 import com.ontey.log.Log;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandMap;
@@ -14,6 +15,7 @@ import java.util.List;
 
 public class Startup {
    
+   @SuppressWarnings("DataFlowIssue")
    public static void loadCommands() {
       Commands.registeredCommands.addAll(getCommands());
       CommandMap commandMap = getCommandMap();
@@ -27,12 +29,12 @@ public class Startup {
             }
          };
          
-         cmd.setPermission(command.permission);
          cmd.setAliases(command.aliases);
-         cmd.setDescription(command.description);
-         cmd.setUsage(command.usage);
+         cmd.setDescription(Config.getOrDefault(command.description, Config.DEFAULT_DESCRIPTION));
+         cmd.setUsage(Config.getOrDefault(command.usage, Config.DEFAULT_USAGE));
+         cmd.setPermission(Config.perm(command));
          
-         commandMap.register("custom", cmd);
+         commandMap.register("ccmd-custom", cmd);
       }
    }
    

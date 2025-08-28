@@ -13,12 +13,13 @@ public class AdvancedBroadcast {
    
    public List<String> messages;
    
-   @SuppressWarnings("DeprecatedIsStillUsed")
-   @Deprecated(since = "only use of()!")
-   public AdvancedBroadcast(int range, String permission, List<String> messages) {
+   public String condition;
+   
+   public AdvancedBroadcast(int range, String permission, List<String> messages, String condition) {
       this.range = range;
       this.permission = permission;
       this.messages = messages;
+      this.condition = condition;
    }
    
    @Nullable

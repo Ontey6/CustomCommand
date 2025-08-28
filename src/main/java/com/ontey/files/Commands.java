@@ -2,9 +2,12 @@ package com.ontey.files;
 
 import com.ontey.CustomCommand;
 import com.ontey.Main;
+import com.ontey.execution.Execution;
 import com.ontey.log.Log;
 import com.ontey.types.AdvancedBroadcast;
 import com.ontey.types.Args;
+import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.jetbrains.annotations.NotNull;
 
@@ -79,6 +82,18 @@ public class Commands {
       return getField(config, command, "commands");
    }
    
+   // TODO
+   public static List<String> getCommands(YamlConfiguration config, String command, CommandSender sender) {
+      ConfigurationSection section = config.getConfigurationSection(command + ".commands");
+      if (section != null) {
+            String conditionPath = ".condition";
+            if (!section.isString(conditionPath) || Execution.evalCondition(section.getString(conditionPath), sender))
+               return getCommands(config, command + ".commands.true", sender);
+            return getCommands(config, command + ".commands.false", sender);
+      }
+      return getField(config, command, "commands");
+   }
+   
    @NotNull
    public static List<String> getAliases(YamlConfiguration config, String command) {
       return getField(config, command, "aliases");
@@ -104,7 +119,7 @@ public class Commands {
       int range = config.getInt(command + ".broadcast.range", -1);
       String permission = config.getString(command + ".broadcast.permission");
       List<String> messages = getField(config, command, "broadcast");
-      //noinspection deprecation Not deprecated, just shouldn't be used
-      return new AdvancedBroadcast(range, permission, messages);
+      String condition = config.getString(command + ".broadcast.condition");
+      return new AdvancedBroadcast(range, permission, messages, condition);
    }
 }

@@ -98,12 +98,8 @@ class PlaceholderStorage {
    static void addCommonPlaceholders(List<Placeholder> out) {
       out.add(ph("char.space", " "));
       out.add(ph("char.circumflex", "^"));
-      out.add(ph("char.temperature", "°"));
+      out.add(ph("char.degrees", "°"));
       out.add(ph("char.tab", "\t"));
       out.add(ph("char.backslash", "\\"));
-   }
-   
-   static Placeholder ph(String placeholder, Object replacement) {
-      return Placeholder.of(placeholder, String.valueOf(replacement));
    }
 }

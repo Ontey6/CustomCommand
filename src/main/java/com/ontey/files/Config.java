@@ -1,5 +1,6 @@
 package com.ontey.files;
 
+import com.ontey.CustomCommand;
 import com.ontey.Main;
 import com.ontey.log.Log;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -124,24 +125,28 @@ public class Config {
    
    // Config-specific methods
    
-   public static String placeholder(String str) {
+   public static String ph(String str) {
       return PLACEHOLDER_FORMAT.replace("%ph", str);
    }
    
-   public static String ph(String str) {
-      return placeholder(str);
-   }
-   
-   public static String actionholder(String str) {
-      return ACTIONHOLDER_FORMAT.replace("%ah", str);
-   }
-   
    public static String ah(String str) {
-      return actionholder(str);
+      return ACTIONHOLDER_FORMAT.replace("%ah", str);
    }
    
    public static boolean isTrue(String str) {
       return BOOLEAN_TRUE.contains(str);
+   }
+   
+   public static String defaultPerm(String command) {
+      return DEFAULT_PERMISSION.replace("%cmd", command);
+   }
+   
+   public static String perm(CustomCommand command) {
+      if (command.permission == null)
+         return Config.defaultPerm(command.name);
+      if (command.permission.isEmpty())
+         return null;
+      return command.permission;
    }
    
    // Constants

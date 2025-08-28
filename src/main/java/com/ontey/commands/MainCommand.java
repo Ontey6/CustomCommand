@@ -16,11 +16,13 @@ public class MainCommand implements TabExecutor {
             sender.sendMessage("Running CustomCommand v." + Main.version);
             sender.sendMessage("Sub-Commands:");
             sender.sendMessage("- reload");
+            break;
          }
          case 1: {
             if(args[0].equals("reload")) {
                Reload.reload(sender);
             }
+            break;
          }
          default: sender.sendMessage("Unrecognized Sub-Command");
       }

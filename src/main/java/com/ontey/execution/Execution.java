@@ -9,7 +9,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-//import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.NotNull;
 import java.util.Arrays;
 import java.util.List;
 
@@ -37,11 +37,16 @@ public class Execution {
    public static void sendAdvancedBroadcast(AdvancedBroadcast advancedBroadcast, CommandSender sender) {
       if (advancedBroadcast != null) {
          String permission = advancedBroadcast.permission;
+         String condition = advancedBroadcast.condition;
          double range = advancedBroadcast.range;
          Location senderLoc = (sender instanceof Player p) ? p.getLocation() : null;
          
          for (Player player : Bukkit.getOnlinePlayers()) {
-            if (permission != null && !player.hasPermission(permission)) continue;
+            if (permission != null && !player.hasPermission(permission))
+               continue;
+            // TODO untested
+            if(!evalCondition(condition, sender))
+               continue;
             if (range != -1 && senderLoc != null)
                if (!player.getWorld().equals(senderLoc.getWorld()) || player.getLocation().distance(senderLoc) > range)
                   continue;
@@ -53,20 +58,32 @@ public class Execution {
    
    // Helpers
    
-   private static String replacePlaceholders(CommandSender sender, /*@NotNull*/ String str) {
+   private static String replacePlaceholders(CommandSender sender, @NotNull String str) {
       return Placeholders.apply(sender, str);
    }
    
-   private static String replaceArgs(/*@NotNull*/ String str, String[] args) {
-      List<String> arguments = Arrays.asList(args);
-      for (int i = 1; i <= args.length; i++) {
+   private static String replaceArgs(@NotNull String str, String[] args) {
+      List<String> list = Arrays.asList(args);
+      int len = args.length;
+      
+      for (int i = 1; i <= len; i++) {
+         
          str = str
-           .replace(Config.ph("arg" + i + ".."), String.join(" ", arguments.subList(i - 1, args.length)))
-           .replace(Config.ph("arg" + i), args[i - 1])
-           .replace(Config.ph("arg.." + i), String.join(" ", arguments.subList(0, i - 1)));
+           .replace(Config.ph("arg" + i), args[i - 1]) // argX
+           .replace(Config.ph("arg" + i + ".."), join(list, i, len)) // argX..
+           .replace(Config.ph("arg.." + i), join(list, 1, i)); // arg..X
+         
+         // argX..Y
+         for (int j = i; j <= len; j++)
+            str = str.replace(Config.ph("arg" + i + ".." + j), join(list, i, j));
       }
       return str;
    }
+   
+   private static String join(List<String> list, int start, int end) {
+      return String.join(" ", list.subList(start - 1, end));
+   }
+   
    
    private static String formatMessage(String message, CommandSender sender) {
       if(message == null)

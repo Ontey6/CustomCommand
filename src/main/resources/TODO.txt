@@ -1,8 +1,8 @@
-default perms, description and usage
+conditions in general commands and in advanced broadcast
 
-conditions in general commands and advanced broadcast
+finish types by adding option to make it a section and add
 
-add conditions
+add tab-completer
 
 add more functionality to the main command - debug info for commands
 
@@ -12,6 +12,10 @@ updater
 
 add variables
 
+add functions
+
 add events
+
+add extra permissions needed to execute commands
 
 Fixes:
