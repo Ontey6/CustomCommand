@@ -15,7 +15,7 @@ public class MainCommand implements TabExecutor {
          case 0: {
             sender.sendMessage("Running CustomCommand v." + Main.version);
             sender.sendMessage("Sub-Commands:");
-            sender.sendMessage("- reload");
+            sender.sendMessage("- §ereload");
             break;
          }
          case 1: {
