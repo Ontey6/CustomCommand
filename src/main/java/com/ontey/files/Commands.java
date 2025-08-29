@@ -83,26 +83,26 @@ public class Commands {
       return getField(config, command, "commands");
    }
    
-   public static List<String> getCommands(YamlConfiguration config, String command, CommandSender sender) {
+   public static List<String> getCommands(YamlConfiguration config, String command, CommandSender sender, String[] args) {
       String commandsPath = command + ".commands";
       if (!config.isConfigurationSection(commandsPath))
          return getField(config, command, "commands");
       
-      return resolveCommandsSection(config, commandsPath, sender);
+      return resolveCommandsSection(config, commandsPath, sender, args);
    }
    
-   private static List<String> resolveCommandsSection(YamlConfiguration config, String path, CommandSender sender) {
+   private static List<String> resolveCommandsSection(YamlConfiguration config, String path, CommandSender sender, String[] args) {
       ConfigurationSection section = config.getConfigurationSection(path);
       if (section == null)
          return new ArrayList<>(0);
       
       String condition = section.getString("condition", null);
       if (condition != null) {
-         boolean result = Execution.evalCondition(condition, sender);
+         boolean result = Execution.evalCondition(condition, sender, args);
          String branchPath = path + "." + (result ? "true" : "false");
          
          if (config.isConfigurationSection(branchPath))
-            return resolveCommandsSection(config, branchPath, sender);
+            return resolveCommandsSection(config, branchPath, sender, args);
          
          List<String> branchList = config.getStringList(branchPath);
          if (!branchList.isEmpty())
@@ -144,10 +144,12 @@ public class Commands {
    }
    
    public static AdvancedBroadcast advancedBroadcast(YamlConfiguration config, String command) {
-      int range = config.getInt(command + ".broadcast.range", -1);
-      String permission = config.getString(command + ".broadcast.permission");
+      String pref = command + ".broadcast.";
+      int range = config.getInt(pref + "range", -1);
+      String permission = config.getString(pref + "permission");
       List<String> broadcast = getField(config, command, "broadcast.broadcast");
-      String condition = config.getString(command + ".broadcast.condition");
+      String condition = config.getString(pref + "condition");
+      
       return new AdvancedBroadcast(range, permission, broadcast, condition);
    }
 }

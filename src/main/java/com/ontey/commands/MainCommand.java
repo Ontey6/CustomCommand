@@ -13,18 +13,17 @@ public class MainCommand implements TabExecutor {
    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String[] args) {
       switch(args.length) {
          case 0: {
-            sender.sendMessage("Running CustomCommand v." + Main.version);
-            sender.sendMessage("Sub-Commands:");
-            sender.sendMessage("- reload");
+            sender.sendMessage("§bRunning CustomCommand v.§3" + Main.version);
+            sender.sendMessage("§bSub-Commands:");
+            sender.sendMessage("- §ereload");
             break;
          }
          case 1: {
-            if(args[0].equals("reload")) {
+            if(args[0].equals("reload"))
                Reload.reload(sender);
-            }
             break;
          }
-         default: sender.sendMessage("Unrecognized Sub-Command");
+         default: sender.sendMessage("§cUnrecognized Sub-Command");
       }
       return true;
    }

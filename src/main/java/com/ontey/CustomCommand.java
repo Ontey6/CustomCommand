@@ -41,13 +41,12 @@ public class CustomCommand {
    }
    
    public void loadMutable(boolean reload) {
-      if (reload) {
+      if (reload)
          try {
             config.load(file);
          } catch(Exception e) {
             return;
          }
-      }
       this.aliases = Commands.getAliases(config, name);
       this.permission = Commands.getPermission(config, name);
       this.description = Commands.getDescription(config, name);
@@ -65,10 +64,12 @@ public class CustomCommand {
       if(Config.HOTSWAP)
          loadMutable(true);
       
-      Execution.runCommands(Commands.getCommands(config, name, sender), sender, args);
+      commands = Commands.getCommands(config, name, sender, args);
+      
+      Execution.runCommands(commands, sender, args);
       Execution.sendMessages(messages, sender, args);
       Execution.sendBroadcasts(broadcasts, sender, args);
-      Execution.sendAdvancedBroadcast(advancedBroadcast, sender);
+      Execution.sendAdvancedBroadcast(advancedBroadcast, sender, args);
    }
    
    public String toString() {

@@ -6,29 +6,34 @@
 
 # note:
 # a ccmd is a command created with this plugin and means CustomCommand
+# Field types can be either List or String
 
-
-# The name of the command
-# This is also the command you type in chat. for this one: /ccmd-struct
+# The name of the ccmd
+# This is also the command you type in chat. for this one: /ccmd-structure
 # constant; doesn't support placeholders
+# Type: Section
 ccmd-structure:
   # A message sent to the player
   # supports placeholders
+  # Type: Field
   message: 'Hello <player>, this is a message'
 
   # A message sent to all players
   # supports placeholders
+  # Type: Field or Section(see advanced-broadcast)
   broadcast: '&ebroadcast:&r Hello from <player>!'
 
   # The commands executed as the player
   # supports placeholders
+  # Type: Field or Section(see conditions)
   commands:
     - give <player> diamond[item_name='{"color":"dark_aqua","text":"This was given to you by command"}']
 
   # The aliases this ccmd has
   # Aliases are commands that do exactly the same actions as the main command
-  # e.g. '/ccmd-structure' does the same as '/ccmd-struct'
+  # e.g. '/ccmd-struct' does the same as '/ccmd-structure'
   # constant; doesn't support placeholders
+  # Type: Field
   aliases:
     - ccmd-struct
 
@@ -57,9 +62,9 @@ ccmd-pingall:
     - '&enow pinging everyone!'
     - '&d---------------------'
   broadcast:
-    - '&d-------------------'
+    - '&d---------------------'
     - '&b<player> pinged you'
-    - '&d-------------------'
+    - '&d---------------------'
   permission: ccmd.pingall
 
 ccmd-advanced-bc:
@@ -72,9 +77,28 @@ ccmd-advanced-bc:
   permission: ccmd.advanced-bc
 
 ccmd-args:
+  commands: 'give <player> diamond'
+  message:
+    - '&eYou passed the args check!'
+    - 'args:&e <arg1..>'
+    - 'mode:&e <arg1>'
+    - 'name and count:&e <arg2..3>'
   args:
-    type: listed
-    list:
-      1: [give, remove]
-      2: []
-      3: [1, 8, 0]
+    1: [give, remove]
+    2: []
+    3: int
+
+ccmd-condition:
+  commands:
+    condition: '<arg1>'
+    true:
+      - 'tellraw <player> "&b<arg1>&7: &etrue"'
+    false:
+      - 'tellraw <player> "&b<arg1>&7: &efalse"'
+  args:
+    1: []
+
+ccmd-ph:
+  message: '&e<arg1>&7:&b <<arg1>>'
+  args:
+    1: []

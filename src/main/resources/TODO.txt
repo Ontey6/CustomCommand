@@ -1,6 +1,6 @@
-conditions in general commands and in advanced broadcast
+finish types by adding option to make it a section and add more options there
 
-finish types by adding option to make it a section and add
+get no permission to work
 
 add tab-completer
 
@@ -17,7 +17,5 @@ add variables
 add functions
 
 add events
-
-add extra permissions needed to execute commands
 
 Fixes:

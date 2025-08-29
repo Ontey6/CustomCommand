@@ -163,6 +163,7 @@ public class Config {
       COMMAND_PREFIX = getOrDefault("format.command-prefix", "customcommand");
       REMOVE_NAMESPACED_PLUGIN_COMMANDS = getOrDefault("tab.remove-namespaced-plugin-commands", false);
       REMOVE_NAMESPACED_COMMANDS = getOrDefault("tab.remove-namespaced-commands", false);
+      REMOVE_COLORS_IN_CONSOLE = getOrDefault("remove-colors-in-console", false);
    }
    
    public static String PREFIX, COMMAND_PREFIX;
@@ -176,4 +177,6 @@ public class Config {
    public static boolean HOTSWAP;
    
    public static boolean REMOVE_NAMESPACED_PLUGIN_COMMANDS, REMOVE_NAMESPACED_COMMANDS;
+   
+   public static boolean REMOVE_COLORS_IN_CONSOLE;
 }

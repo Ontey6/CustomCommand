@@ -53,6 +53,6 @@ public class Placeholders {
    }
    
    static Placeholder ph(String placeholder, Object replacement) {
-      return Placeholder.of(placeholder, String.valueOf(replacement));
+      return new Placeholder(placeholder, String.valueOf(replacement));
    }
 }

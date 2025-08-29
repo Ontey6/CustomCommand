@@ -17,10 +17,6 @@ public class Placeholder {
       this.replacement = replacement;
    }
    
-   public static Placeholder of(String placeholder, String replacement) {
-      return new Placeholder(placeholder, replacement);
-   }
-   
    // methods
    
    public String apply(String str) {

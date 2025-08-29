@@ -15,7 +15,7 @@ public class Args {
    
    public Args(YamlConfiguration config, String command) {
       this.config = config;
-      this.path = command + ".args.list";
+      this.path = command + ".args";
    }
    
    public int getLength() {

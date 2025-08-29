@@ -3,7 +3,6 @@ package com.ontey.reload;
 import com.ontey.CustomCommand;
 import com.ontey.files.Commands;
 import com.ontey.files.Config;
-import com.ontey.log.Log;
 import org.bukkit.command.CommandSender;
 
 public class Reload {
@@ -17,18 +16,15 @@ public class Reload {
          Config.config.load(Config.file);
          Config.loadConstants();
       } catch(Exception e) {
-         sender.sendMessage("§Couldn't reload the config");
+         sender.sendMessage("§Couldn't reload the config. Using old configuration");
          return;
       }
       sender.sendMessage("§aReloaded the config");
    }
    
    public static void reloadCommands(CommandSender sender) {
-      Log.info("Reloading commands:");
-      for(CustomCommand cmd : Commands.registeredCommands) {
+      for(CustomCommand cmd : Commands.registeredCommands)
          cmd.loadMutable(true);
-         Log.info("- " + cmd);
-      }
       sender.sendMessage("§aReloaded the Commands");
    }
 }
