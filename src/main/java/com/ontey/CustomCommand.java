@@ -40,8 +40,8 @@ public class CustomCommand {
       loadMutable(false);
    }
    
-   public void loadMutable(boolean reload)
-      if (reload) {
+   public void loadMutable(boolean reload) {
+      if (reload)
          try {
             config.load(file);
          } catch(Exception e) {
