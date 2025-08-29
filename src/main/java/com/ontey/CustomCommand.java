@@ -40,14 +40,13 @@ public class CustomCommand {
       loadMutable(false);
    }
    
-   public void loadMutable(boolean reload) {
+   public void loadMutable(boolean reload)
       if (reload) {
          try {
             config.load(file);
          } catch(Exception e) {
             return;
          }
-      }
       this.aliases = Commands.getAliases(config, name);
       this.permission = Commands.getPermission(config, name);
       this.description = Commands.getDescription(config, name);
