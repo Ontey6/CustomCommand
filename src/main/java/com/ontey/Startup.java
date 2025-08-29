@@ -34,7 +34,7 @@ public class Startup {
          cmd.setUsage(Config.getOrDefault(command.usage, Config.DEFAULT_USAGE));
          cmd.setPermission(Config.perm(command));
          
-         commandMap.register("ccmd-custom", cmd);
+         commandMap.register(Config.COMMAND_PREFIX, cmd);
       }
    }
    
@@ -42,7 +42,7 @@ public class Startup {
       try {
          return (CommandMap) Bukkit.getServer().getClass().getMethod("getCommandMap").invoke(Bukkit.getServer());
       } catch (Exception e) {
-         throw new RuntimeException("Unable to get CommandMap", e);
+         throw new RuntimeException("Unable to get CommandMap, disabling plugin", e);
       }
    }
    

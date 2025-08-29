@@ -11,14 +11,14 @@ public class AdvancedBroadcast {
    
    public String permission;
    
-   public List<String> messages;
+   public List<String> broadcast;
    
    public String condition;
    
-   public AdvancedBroadcast(int range, String permission, List<String> messages, String condition) {
+   public AdvancedBroadcast(int range, String permission, List<String> broadcast, String condition) {
       this.range = range;
       this.permission = permission;
-      this.messages = messages;
+      this.broadcast = broadcast;
       this.condition = condition;
    }
    

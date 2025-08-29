@@ -4,6 +4,8 @@ finish types by adding option to make it a section and add
 
 add tab-completer
 
+option to remove plugin commands with prefix from tab
+
 add more functionality to the main command - debug info for commands
 
 more customizability -> maybe customizable command paths

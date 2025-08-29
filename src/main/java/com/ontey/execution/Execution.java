@@ -12,6 +12,8 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Execution {
    
@@ -44,13 +46,12 @@ public class Execution {
          for (Player player : Bukkit.getOnlinePlayers()) {
             if (permission != null && !player.hasPermission(permission))
                continue;
-            // TODO untested
             if(!evalCondition(condition, sender))
                continue;
             if (range != -1 && senderLoc != null)
                if (!player.getWorld().equals(senderLoc.getWorld()) || player.getLocation().distance(senderLoc) > range)
                   continue;
-            for(String msg : advancedBroadcast.messages)
+            for(String msg : advancedBroadcast.broadcast)
                player.sendMessage(formatMessage(msg, sender));
          }
       }
@@ -67,7 +68,6 @@ public class Execution {
       int len = args.length;
       
       for (int i = 1; i <= len; i++) {
-         
          str = str
            .replace(Config.ph("arg" + i), args[i - 1]) // argX
            .replace(Config.ph("arg" + i + ".."), join(list, i, len)) // argX..
@@ -134,13 +134,33 @@ public class Execution {
       // Operator check
       String[] ops = {"==", "=?=", "!=", "!?=", ">=", "<=", ">", "<"};
       for (String op : ops) {
-         int idx = replaced.indexOf(op);
-         if (idx != -1) {
+         Pattern pattern = Pattern.compile(Pattern.quote(op));
+         Matcher matcher = pattern.matcher(replaced);
+         
+         while (matcher.find()) {
+            int idx = matcher.start();
+            
+            // count backslashes before operator
+            int bs = 0;
+            for (int i = idx - 1; i >= 0 && replaced.charAt(i) == '\\'; i--)
+               bs++;
+            
+            // skip if odd number of backslashes (means escaped)
+            if (bs % 2 == 1)
+               continue;
+            
             String left = replaced.substring(0, idx);
             String right = replaced.substring(idx + op.length());
+            
+            // remove escapes: turn "\==" into "=="
+            left = left.replace("\\\\", "\\").replace("\\" + op, op);
+            right = right.replace("\\\\", "\\").replace("\\" + op, op);
+            
             return compare(left, right, op);
          }
       }
+      
+      
       
       // Direct boolean check
       String lower = replaced.toLowerCase();
@@ -162,15 +182,14 @@ public class Execution {
             case "<=" -> l <= r;
             default -> false;
          };
-      } else {
-         return switch (op) {
-            case "==" -> left.equals(right);
-            case "!=" -> !left.equals(right);
-            case "=?=" -> left.equalsIgnoreCase(right);
-            case "!?=" -> !left.equalsIgnoreCase(right);
-            default -> false;
-         };
       }
+      return switch (op) {
+         case "==" -> left.equals(right);
+         case "!=" -> !left.equals(right);
+         case "=?=" -> left.equalsIgnoreCase(right);
+         case "!?=" -> !left.equalsIgnoreCase(right);
+         default -> false;
+      };
    }
    
    private static boolean isNumeric(String str) {

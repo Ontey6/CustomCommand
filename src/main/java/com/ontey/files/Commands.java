@@ -12,7 +12,8 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Commands {
    
@@ -82,16 +83,43 @@ public class Commands {
       return getField(config, command, "commands");
    }
    
-   // TODO
    public static List<String> getCommands(YamlConfiguration config, String command, CommandSender sender) {
-      ConfigurationSection section = config.getConfigurationSection(command + ".commands");
-      if (section != null) {
-            String conditionPath = ".condition";
-            if (!section.isString(conditionPath) || Execution.evalCondition(section.getString(conditionPath), sender))
-               return getCommands(config, command + ".commands.true", sender);
-            return getCommands(config, command + ".commands.false", sender);
+      String commandsPath = command + ".commands";
+      if (!config.isConfigurationSection(commandsPath))
+         return getField(config, command, "commands");
+      
+      return resolveCommandsSection(config, commandsPath, sender);
+   }
+   
+   private static List<String> resolveCommandsSection(YamlConfiguration config, String path, CommandSender sender) {
+      ConfigurationSection section = config.getConfigurationSection(path);
+      if (section == null)
+         return new ArrayList<>(0);
+      
+      String condition = section.getString("condition", null);
+      if (condition != null) {
+         boolean result = Execution.evalCondition(condition, sender);
+         String branchPath = path + "." + (result ? "true" : "false");
+         
+         if (config.isConfigurationSection(branchPath))
+            return resolveCommandsSection(config, branchPath, sender);
+         
+         List<String> branchList = config.getStringList(branchPath);
+         if (!branchList.isEmpty())
+            return branchList;
+         
+         return new ArrayList<>(0);
       }
-      return getField(config, command, "commands");
+      
+      List<String> list = config.getStringList(path);
+      if (!list.isEmpty())
+         return list;
+      
+      int idx = path.indexOf(".commands");
+      if (idx > 0)
+         return getField(config, path.substring(0, idx), "commands");
+      
+      return new ArrayList<>(0);
    }
    
    @NotNull
@@ -108,18 +136,18 @@ public class Commands {
    }
    
    public static String getDescription(YamlConfiguration config, String command) {
-      return config.getString(command + ".description");
+      return String.join("\n", getField(config, command, "description"));
    }
    
    public static String getUsage(YamlConfiguration config, String command) {
-      return config.getString(command + ".usage");
+      return String.join("\n", getField(config, command, "usage"));
    }
    
    public static AdvancedBroadcast advancedBroadcast(YamlConfiguration config, String command) {
       int range = config.getInt(command + ".broadcast.range", -1);
       String permission = config.getString(command + ".broadcast.permission");
-      List<String> messages = getField(config, command, "broadcast");
+      List<String> broadcast = getField(config, command, "broadcast.broadcast");
       String condition = config.getString(command + ".broadcast.condition");
-      return new AdvancedBroadcast(range, permission, messages, condition);
+      return new AdvancedBroadcast(range, permission, broadcast, condition);
    }
 }

@@ -54,7 +54,7 @@ public class Config {
          Log.error(
            "+-+-+-+-+-+-+-+-+-+-+-+-CCMD-+-+-+-+-+-+-+-+-+-+-+-+-+",
            "  Couldn't save the config file.",
-           "  This is probably the developer's fault!",
+           "  If the file doesn't exist anymore, restart the server",
            "+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+"
          );
          //noinspection CallToPrintStackTrace
@@ -119,7 +119,7 @@ public class Config {
          // noinspection unchecked
          return (T) config.getObject(path, fallback.getClass());
       } catch(ClassCastException e) {
-         return null;
+         return fallback;
       }
    }
    
@@ -156,22 +156,24 @@ public class Config {
       PLACEHOLDER_FORMAT = getOrDefault("format.placeholder-format", "<%ph>");
       ACTIONHOLDER_FORMAT = getOrDefault("format.actionholder-format", "<!%ah>");
       BOOLEAN_TRUE = getOrDefault("boolean-true", new ArrayList<>(List.of("true", "yes")));
-      //noinspection DataFlowIssue
       HOTSWAP = getOrDefault("dev.hotswap", false);
       DEFAULT_PERMISSION = getOrDefault("defaults.permission", "ccmd.command.%cmd");
       DEFAULT_USAGE = getOrDefault("defaults.usage", "/<command>");
       DEFAULT_DESCRIPTION = getOrDefault("defaults.description", "Server Command");
+      COMMAND_PREFIX = getOrDefault("format.command-prefix", "customcommand");
+      REMOVE_NAMESPACED_PLUGIN_COMMANDS = getOrDefault("tab.remove-namespaced-plugin-commands", false);
+      REMOVE_NAMESPACED_COMMANDS = getOrDefault("tab.remove-namespaced-commands", false);
    }
    
-   public static String PREFIX;
+   public static String PREFIX, COMMAND_PREFIX;
    
-   public static String PLACEHOLDER_FORMAT;
-   
-   public static String ACTIONHOLDER_FORMAT;
+   public static String PLACEHOLDER_FORMAT, ACTIONHOLDER_FORMAT;
    
    public static List<String> BOOLEAN_TRUE;
    
+   public static String DEFAULT_PERMISSION, DEFAULT_USAGE, DEFAULT_DESCRIPTION;
+   
    public static boolean HOTSWAP;
    
-   public static String DEFAULT_PERMISSION, DEFAULT_USAGE, DEFAULT_DESCRIPTION;
+   public static boolean REMOVE_NAMESPACED_PLUGIN_COMMANDS, REMOVE_NAMESPACED_COMMANDS;
 }
