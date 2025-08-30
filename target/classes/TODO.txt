@@ -1,7 +1,5 @@
 finish types by adding option to make it a section and add more options there
 
-get no permission to work
-
 add tab-completer
 
 option to remove plugin commands with prefix from tab
@@ -19,3 +17,5 @@ add functions
 add events
 
 Fixes:
+
+get no permission to work

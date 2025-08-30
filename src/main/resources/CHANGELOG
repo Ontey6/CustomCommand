@@ -1,0 +1,6 @@
+changed config key format.command-prefix to format.namespace
+adjusted description
+
+Changed advanced broadcast's field messages to broadcast to match change from 0.02 in examples.yml
+
+added new permission-required field in commands

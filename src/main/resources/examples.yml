@@ -71,7 +71,7 @@ ccmd-advanced-bc:
   broadcast:
     range: 10
     permission: ccmd.struct.bc
-    messages:
+    broadcast:
       - 'Hello, &e<player>&r!'
 
   permission: ccmd.advanced-bc

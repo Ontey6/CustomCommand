@@ -42,23 +42,23 @@ public class Execution {
    }
    
    public static void sendAdvancedBroadcast(AdvancedBroadcast advancedBroadcast, CommandSender sender, String[] args) {
-      if (advancedBroadcast != null) {
-         String permission = advancedBroadcast.permission;
-         String condition = advancedBroadcast.condition;
-         double range = advancedBroadcast.range;
-         Location senderLoc = (sender instanceof Player p) ? p.getLocation() : null;
-         
-         for (Player player : Bukkit.getOnlinePlayers()) {
-            if (permission != null && !player.hasPermission(permission))
+      if (advancedBroadcast == null)
+         return;
+      String permission = advancedBroadcast.permission;
+      String condition = advancedBroadcast.condition;
+      double range = advancedBroadcast.range;
+      Location senderLoc = (sender instanceof Player p) ? p.getLocation() : null;
+      
+      for (Player player : Bukkit.getOnlinePlayers()) {
+         if (permission != null && !player.hasPermission(permission))
+            continue;
+         if(!evalCondition(condition, sender, args))
+            continue;
+         if (range != -1 && senderLoc != null)
+            if (!player.getWorld().equals(senderLoc.getWorld()) || player.getLocation().distance(senderLoc) > range)
                continue;
-            if(!evalCondition(condition, sender, args))
-               continue;
-            if (range != -1 && senderLoc != null)
-               if (!player.getWorld().equals(senderLoc.getWorld()) || player.getLocation().distance(senderLoc) > range)
-                  continue;
-            for(String msg : advancedBroadcast.broadcast)
-               player.sendMessage(formatMessage(msg, sender));
-         }
+         for(String msg : advancedBroadcast.broadcast)
+            player.sendMessage(formatMessage(msg, sender));
       }
    }
    

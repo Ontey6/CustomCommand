@@ -79,10 +79,6 @@ public class Commands {
    }
    
    @NotNull
-   public static List<String> getCommands(YamlConfiguration config, String command) {
-      return getField(config, command, "commands");
-   }
-   
    public static List<String> getCommands(YamlConfiguration config, String command, CommandSender sender, String[] args) {
       String commandsPath = command + ".commands";
       if (!config.isConfigurationSection(commandsPath))
@@ -132,7 +128,16 @@ public class Commands {
    }
    
    public static String getPermission(YamlConfiguration config, String command) {
-      return config.getString(command + ".permission");
+      String value = config.getString(command + ".permission");
+      if(!requiresPermission(config, command))
+         return null;
+      if(value == null)
+         return Config.defaultPerm(command);
+      return value;
+   }
+   
+   public static boolean requiresPermission(YamlConfiguration config, String command) {
+      return config.getBoolean(command + ".permission-required", true);
    }
    
    public static String getDescription(YamlConfiguration config, String command) {

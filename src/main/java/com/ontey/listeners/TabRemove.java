@@ -10,7 +10,7 @@ public class TabRemove implements Listener {
    @EventHandler
    public void onTabComplete(PlayerCommandSendEvent event) {
       if(Config.REMOVE_NAMESPACED_PLUGIN_COMMANDS)
-         event.getCommands().removeIf(cmd -> cmd.startsWith(Config.COMMAND_PREFIX + ":"));
+         event.getCommands().removeIf(cmd -> cmd.startsWith(Config.NAMESPACE + ":"));
       if(Config.REMOVE_NAMESPACED_COMMANDS)
          event.getCommands().removeIf(cmd -> cmd.contains(":"));
    }

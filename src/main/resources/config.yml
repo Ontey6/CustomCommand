@@ -6,19 +6,13 @@ format:
   # The prefix of console logs
   prefix: '[CCMD]'
   # The prefix when referencing the full command
-  # example: minecraft's /tell can be referenced via /minecraft:tell
-  # format: command-prefix : command
-  command-prefix: 'customcommand'
+  # example: minecraft's /tell can be referenced via /minecraft:tell. Then minecraft is the namespace
+  # format: namespace : command
+  namespace: 'customcommand'
   # The placeholder format: < ph >
   placeholder-format: '<%ph>'
   # the action-holder format: < ! ah >
   actionholder-format: '<!%ah>'
-
-# the values accepted as true, everything else is false
-# CASE SENSITIVE
-boolean-true:
-  - 'true'
-  - 'yes' # papi default
 
 dev:
   # Immediately updates commands when there are changes
@@ -38,6 +32,12 @@ tab:
   # This will remove all commands with a prefix from tab. they can still be executed just fine
   # If the command is "not found", your args are probably just invalid
   remove-namespaced-commands: false
+
+# the values accepted as true, everything else is false
+# CASE SENSITIVE
+boolean-true:
+  - 'true'
+  - 'yes' # papi default
 
 # Removes the &<c> colors. doesn't apply to §<c>
 # Some consoles don't support colors and will take outputs literally
