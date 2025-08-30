@@ -1,5 +1,5 @@
 Links:
 
-[Bukkit](dev.bukkit.org/projects/customcommand)
+[Bukkit](https://dev.bukkit.org/projects/customcommand)
 
-[Modrinth(not available yet)](modrinth.com/plugin/ccmd)
+[Modrinth(not available yet)](https://modrinth.com/plugin/ccmd)
