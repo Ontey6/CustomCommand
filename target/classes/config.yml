@@ -1,0 +1,44 @@
+#------------------------------#
+#       Config File v0.1       #
+#------------------------------#
+
+format:
+  # The prefix of console logs
+  prefix: '[CCMD]'
+  # The prefix when referencing the full command
+  # example: minecraft's /tell can be referenced via /minecraft:tell
+  # format: command-prefix : command
+  command-prefix: 'customcommand'
+  # The placeholder format: < ph >
+  placeholder-format: '<%ph>'
+  # the action-holder format: < ! ah >
+  actionholder-format: '<!%ah>'
+
+# the values accepted as true, everything else is false
+# CASE SENSITIVE
+boolean-true:
+  - 'true'
+  - 'yes' # papi default
+
+dev:
+  # Immediately updates commands when there are changes
+  hotswap: false
+
+# the default values for the corresponding fields in a ccmd
+defaults:
+  permission: 'ccmd.command.%cmd'
+  usage: '/<command>' # <command> -> command's name, \n -> new line
+  description: 'Server Command'
+
+tab:
+  # This will remove all ccmd's with a prefix from tab. they can still be executed just fine
+  # see: command-prefix in format
+  remove-namespaced-plugin-commands: false
+
+  # This will remove all commands with a prefix from tab. they can still be executed just fine
+  # If the command is "not found", your args are probably just invalid
+  remove-namespaced-commands: false
+
+# Removes the &<c> colors. doesn't apply to §<c>
+# Some consoles don't support colors and will take outputs literally
+remove-colors-in-console: false
