@@ -1,5 +1,5 @@
 #------------------------------#
-#       Config File v0.1       #
+#       Config File v0.2       #
 #------------------------------#
 
 format:
@@ -42,3 +42,29 @@ boolean-true:
 # Removes the &<c> colors. doesn't apply to §<c>
 # Some consoles don't support colors and will take outputs literally
 remove-colors-in-console: false
+
+# only change this if some name triggers you, or you want shorter / more detailed names
+# changing this will result in examples.yml not working correctly anymore
+paths:
+  message: '%cmd.message'
+  broadcast: '%cmd.broadcast'
+  aliases: '%cmd.aliases'
+  description: '%cmd.description'
+  usage: '%cmd.usage'
+  permission: '%cmd.permission'
+  permission-required: '%cmd.permission-required'
+  args: '%cmd.args'
+  tab: '%cmd.tab'
+
+  # conditions right now still require this to start with '%cmd.commands', so no short versions of it :/
+  # or just never use conditions...
+  commands: '%cmd.commands' # placeholder: %cmds The commands path (only supported by fields in this section)
+  command-condition: '%cmds.condition'
+  command-condition-true: '%cmds.condition.true'
+  command-condition-false: '%cmds.condition.false'
+
+  advanced-broadcast: '%cmd.broadcast' # placeholder: %abc The advanced broadcast path (only the fields in this section support it)
+  advanced-broadcast-range: '%abc.range'
+  advanced-broadcast-permission: '%abc.permission'
+  advanced-broadcast-condition: '%abc.condition'
+  advanced-broadcast-broadcast: '%abc.broadcast'

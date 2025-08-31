@@ -73,6 +73,8 @@ public class Execution {
    private static String replaceArgs(@NotNull String str, String[] args) {
       List<String> list = Arrays.asList(args);
       
+      str = str.replace(Config.ph("args-length"), str(args.length));
+      
       for (int i = 1; i <= args.length; i++)
          str = replaceArg(str, list, i, args);
       
@@ -81,9 +83,9 @@ public class Execution {
    
    private static String replaceArg(String str, List<String> list, int i, String[] args) {
       str = str
-        .replace(Config.ph("arg" + i), args[i - 1])                // argX
+        .replace(Config.ph("arg" + i), args[i - 1]) // argX
         .replace(Config.ph("arg" + i + ".."), join(list, i, args.length)) //  argX..
-        .replace(Config.ph("arg.." + i), join(list, 1, i));      //   arg..X
+        .replace(Config.ph("arg.." + i), join(list, 1, i)); //   arg..X
       
       for (int j = i; j <= args.length; j++)
          str = str.replace(Config.ph("arg" + i + ".." + j), join(list, i, j)); // argX..Y
@@ -217,5 +219,9 @@ public class Execution {
       if (str == null)
          return false;
       return str.matches("[+-]?\\d+(\\.\\d+)?");
+   }
+   
+   private static String str(Object obj) {
+      return obj == null ? "" : obj.toString();
    }
 }

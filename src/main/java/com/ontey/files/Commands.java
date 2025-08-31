@@ -3,6 +3,7 @@ package com.ontey.files;
 import com.ontey.CustomCommand;
 import com.ontey.Main;
 import com.ontey.execution.Execution;
+import com.ontey.holder.CommandPaths;
 import com.ontey.log.Log;
 import com.ontey.types.AdvancedBroadcast;
 import com.ontey.types.Args;
@@ -60,8 +61,12 @@ public class Commands {
    // This returns a list from either a String or a list
    
    @NotNull
-   private static List<String> getField(YamlConfiguration config, String command, String field) {
-      String path = command + "." + field;
+   public static List<String> getField(YamlConfiguration config, String command, String field) {
+      return getField(config, command + "." + field);
+   }
+   
+   @NotNull
+   public static List<String> getField(YamlConfiguration config, String path) {
       if(config.isString(path) && config.getString(path) != null)
          // noinspection ConstantConditions
          return new ArrayList<>(List.of(config.getString(path))); // just in case
@@ -70,35 +75,37 @@ public class Commands {
    
    @NotNull
    public static List<String> getMessages(YamlConfiguration config, String command) {
-      return getField(config, command, "message");
+      return getField(config, CommandPaths.message(command));
    }
    
    @NotNull
    public static List<String> getBroadcasts(YamlConfiguration config, String command) {
-      return getField(config, command, "broadcast");
+      return getField(config, CommandPaths.broadcast(command));
    }
    
    @NotNull
    public static List<String> getCommands(YamlConfiguration config, String command, CommandSender sender, String[] args) {
-      String commandsPath = command + ".commands";
+      String commandsPath = CommandPaths.Commands.section(command);
       if (!config.isConfigurationSection(commandsPath))
-         return getField(config, command, "commands");
+         return getField(config, commandsPath);
       
-      return resolveCommandsSection(config, commandsPath, sender, args);
+      return resolveCommandsSection(config, commandsPath, sender, args, command);
    }
    
-   private static List<String> resolveCommandsSection(YamlConfiguration config, String path, CommandSender sender, String[] args) {
+   private static List<String> resolveCommandsSection(YamlConfiguration config, String path, CommandSender sender, String[] args, String command) {
       ConfigurationSection section = config.getConfigurationSection(path);
       if (section == null)
          return new ArrayList<>(0);
       
-      String condition = section.getString("condition", null);
+      String condition = config.getString(CommandPaths.Commands.condition(command), null);
       if (condition != null) {
          boolean result = Execution.evalCondition(condition, sender, args);
-         String branchPath = path + "." + (result ? "true" : "false");
+         String branchPath = result
+           ? CommandPaths.Commands.conditionTrue(command)
+           : CommandPaths.Commands.conditionFalse(command);
          
          if (config.isConfigurationSection(branchPath))
-            return resolveCommandsSection(config, branchPath, sender, args);
+            return resolveCommandsSection(config, branchPath, sender, args, command);
          
          List<String> branchList = config.getStringList(branchPath);
          if (!branchList.isEmpty())
@@ -111,6 +118,7 @@ public class Commands {
       if (!list.isEmpty())
          return list;
       
+      // TODO replace legacy way of only accepting commands as a name.
       int idx = path.indexOf(".commands");
       if (idx > 0)
          return getField(config, path.substring(0, idx), "commands");
@@ -120,15 +128,15 @@ public class Commands {
    
    @NotNull
    public static List<String> getAliases(YamlConfiguration config, String command) {
-      return getField(config, command, "aliases");
+      return getField(config, CommandPaths.aliases(command));
    }
    
    public static Args getArgs(YamlConfiguration config, String command) {
-      return new Args(config, command);
+      return new Args(config, command); // TODO
    }
    
    public static String getPermission(YamlConfiguration config, String command) {
-      String value = config.getString(command + ".permission");
+      String value = config.getString(CommandPaths.permission(command));
       if(!requiresPermission(config, command))
          return null;
       if(value == null)
@@ -137,24 +145,23 @@ public class Commands {
    }
    
    public static boolean requiresPermission(YamlConfiguration config, String command) {
-      return config.getBoolean(command + ".permission-required", true);
+      return config.getBoolean(CommandPaths.permissionRequired(command), true);
    }
    
    public static String getDescription(YamlConfiguration config, String command) {
-      return String.join("\n", getField(config, command, "description"));
+      return String.join("\n", getField(config, CommandPaths.description(command)));
    }
    
    public static String getUsage(YamlConfiguration config, String command) {
-      return String.join("\n", getField(config, command, "usage"));
+      return String.join("\n", getField(config, CommandPaths.usage(command)));
    }
    
    public static AdvancedBroadcast advancedBroadcast(YamlConfiguration config, String command) {
-      String pref = command + ".broadcast.";
-      int range = config.getInt(pref + "range", -1);
-      String permission = config.getString(pref + "permission");
-      List<String> broadcast = getField(config, command, "broadcast.broadcast");
-      String condition = config.getString(pref + "condition");
+      int range = config.getInt(CommandPaths.AdvancedBroadcast.range(command), -1);
+      String permission = config.getString(CommandPaths.AdvancedBroadcast.permission(command));
+      List<String> broadcast = getField(config, CommandPaths.AdvancedBroadcast.broadcast(command));
+      String condition = config.getString(CommandPaths.AdvancedBroadcast.condition(command));
       
-      return new AdvancedBroadcast(range, permission, broadcast, condition);
+      return new AdvancedBroadcast(range, permission, condition, broadcast);
    }
 }

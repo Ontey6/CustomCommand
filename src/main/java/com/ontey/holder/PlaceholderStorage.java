@@ -70,13 +70,8 @@ class PlaceholderStorage {
       out.add(ph("sender.isPlayer", "true"));
       out.add(ph("sender.isConsole", "false"));
       out.add(ph("sender.isCommandBlock", "false"));
-      out.add(ph("players-online-count", Bukkit.getOnlinePlayers().size()));
-      out.add(ph("players-online", onlinePlayers(", ")));
-      out.add(ph("server-ip", p.getServer().getIp()));
-      out.add(ph("server", p.getServer().getName()));
-      out.add(ph("can-replace-papi", Main.papi));
       
-      addCommonPlaceholders(out);
+      addCommonPlaceholders(out, p);
       
       return out;
    }
@@ -84,22 +79,27 @@ class PlaceholderStorage {
    static List<Placeholder> getConsolePlaceholders(CommandSender sender) {
       List<Placeholder> out = new ArrayList<>();
       out.add(ph("player.isOp", "true"));
-      out.add(ph("server-ip", sender.getServer().getIp()));
-      out.add(ph("server", sender.getServer().getName()));
       out.add(ph("sender.isPlayer", "false"));
       out.add(ph("sender.isCommandBlock", sender instanceof CommandBlock));
       out.add(ph("sender.isConsole", sender instanceof ConsoleCommandSender));
       out.add(ph("player", "console"));
-      out.add(ph("can-replace-papi", "false"));
-      addCommonPlaceholders(out);
+      addCommonPlaceholders(out, sender);
       return out;
    }
    
-   static void addCommonPlaceholders(List<Placeholder> out) {
-      out.add(ph("char.space", " "));
-      out.add(ph("char.circumflex", "^"));
-      out.add(ph("char.degrees", "°"));
-      out.add(ph("char.tab", "\t"));
-      out.add(ph("char.backslash", "\\"));
+   static void addCommonPlaceholders(List<Placeholder> out, CommandSender sender) {
+      out.add(ph("space", " "));
+      out.add(ph("circumflex", "^"));
+      out.add(ph("degrees", "°"));
+      out.add(ph("tab", "\t"));
+      out.add(ph("backslash", "\\"));
+      
+      out.add(ph("plugin.version", Main.version));
+      out.add(ph("plugin.papi-active", Main.papi));
+      
+      out.add(ph("server-ip", sender.getServer().getIp()));
+      out.add(ph("server", sender.getServer().getName()));
+      out.add(ph("players-online-count", Bukkit.getOnlinePlayers().size()));
+      out.add(ph("players-online", onlinePlayers(", ")));
    }
 }

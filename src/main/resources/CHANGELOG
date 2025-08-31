@@ -4,3 +4,10 @@ adjusted description
 Changed advanced broadcast's field messages to broadcast to match change from 0.02 in examples.yml
 
 added new permission-required field in commands
+
+added simple tab completer
+# TODO update examples.yml
+
+switched placeholders around (now also on the wiki)
+
+added customizable paths

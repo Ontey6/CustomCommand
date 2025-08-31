@@ -19,23 +19,33 @@ public class Startup {
       Commands.registeredCommands.addAll(getCommands());
       CommandMap commandMap = getCommandMap();
       
-      for(CustomCommand command : Commands.registeredCommands) {
-         
-         BukkitCommand cmd = new BukkitCommand(command.name) {
-            public boolean execute(@NotNull CommandSender sender, @NotNull String label, String [] args) {
-               command.execute(sender, label, args);
-               return true;
-            }
-         };
-         
-         cmd.setAliases(command.aliases);
-         cmd.setDescription(Config.getOrDefault(command.description, Config.DEFAULT_DESCRIPTION));
-         cmd.setUsage(Config.getOrDefault(command.usage, Config.DEFAULT_USAGE));
-         cmd.setPermission(Commands.getPermission(command.config, command.name));
-         
-         commandMap.register(Config.NAMESPACE, cmd);
+      for (CustomCommand command : Commands.registeredCommands) {
+         loadCommand(commandMap, command);
       }
    }
+   
+   private static void loadCommand(CommandMap commandMap, CustomCommand command) {
+      BukkitCommand cmd = new BukkitCommand(command.name) {
+         @Override
+         public boolean execute(@NotNull CommandSender sender, @NotNull String label, String[] args) {
+            command.execute(sender, label, args);
+            return true;
+         }
+         
+         @Override
+         public @NotNull List<String> tabComplete(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args) {
+            return command.tab.getApplicableTabCompleter(args);
+         }
+      };
+      
+      cmd.setAliases(command.aliases);
+      cmd.setDescription(Config.getOrDefault(command.description, Config.DEFAULT_DESCRIPTION));
+      cmd.setUsage(Config.getOrDefault(command.usage, Config.DEFAULT_USAGE));
+      cmd.setPermission(Commands.getPermission(command.config, command.name));
+      
+      commandMap.register(Config.NAMESPACE, cmd);
+   }
+   
    
    public static CommandMap getCommandMap() {
       try {

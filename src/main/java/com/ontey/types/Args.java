@@ -1,6 +1,7 @@
 package com.ontey.types;
 
 import com.ontey.files.Commands;
+import com.ontey.holder.CommandPaths;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.jetbrains.annotations.Nullable;
@@ -9,13 +10,13 @@ import java.util.List;
 
 public class Args {
    
-   private final YamlConfiguration config;
+   public final YamlConfiguration config;
    
-   private final String path;
+   public final String path;
    
    public Args(YamlConfiguration config, String command) {
       this.config = config;
-      this.path = command + ".args";
+      this.path = CommandPaths.args(command);
    }
    
    public int getLength() {
@@ -26,6 +27,9 @@ public class Args {
    }
    
    public boolean checkArgs(CommandSender sender, String[] args) {
+      //noinspection DataFlowIssue
+      if(config.isList(path) && config.getList(path).isEmpty())
+         return true;
       if(getLength() != args.length) {
          sender.sendMessage("§cInvalid amount of arguments: " + args.length + ". Should be " + getLength());
          return false;
