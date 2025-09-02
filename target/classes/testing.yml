@@ -1,6 +1,0 @@
-# tab completer:
-  tab:
-    1: [hello, world] # any list
-    2: [] # will return nothing (def behavior)
-    3: '<players>' # return null
-    4: '<args>' # will return the args options
