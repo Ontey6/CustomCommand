@@ -89,9 +89,6 @@ class PlaceholderStorage {
    
    static void addCommonPlaceholders(List<Placeholder> out, CommandSender sender) {
       out.add(ph("space", " "));
-      out.add(ph("circumflex", "^"));
-      out.add(ph("degrees", "°"));
-      out.add(ph("tab", "\t"));
       out.add(ph("backslash", "\\"));
       
       out.add(ph("plugin.version", Main.version));

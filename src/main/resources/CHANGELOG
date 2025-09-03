@@ -1,13 +1,22 @@
 changed config key format.command-prefix to format.namespace
 adjusted description
 
-Changed advanced broadcast's field messages to broadcast to match change from 0.02 in examples.yml
+Changed advanced broadcast's field messages to broadcast to match change from v0.02(version not available) in examples.yml
 
 added new permission-required field in commands
 
 added simple tab completer
-# TODO update examples.yml
+updated examples.yml
 
 switched placeholders around (now also on the wiki)
+removed 'degrees', 'tab' and 'circumflex' placeholders because of redundancy
 
 added customizable paths
+
+Added logging when disabling plugin because the plugin is unable to create the commands directory
+
+embedded conditions into commands via actionholder
+
+made actionholders work without throwing a NullPointerException by simply not returning null...
+
+added an updater

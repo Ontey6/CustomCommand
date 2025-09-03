@@ -16,13 +16,13 @@ public class ActionHolders {
       if(str.startsWith(ah("msg"))) {
          str = str.substring(ah("msg").length());
          sender.sendMessage(str);
-         return null;
+         return "";
       }
       if(str.startsWith(ah("broadcast"))) {
          str = str.substring(ah("broadcast").length());
          for(Player player : Bukkit.getOnlinePlayers())
             player.sendMessage(str);
-         return null;
+         return "";
       }
       if(str.contains(ah("reload"))) {
          str = str.replaceFirst(ah("reload"), "");

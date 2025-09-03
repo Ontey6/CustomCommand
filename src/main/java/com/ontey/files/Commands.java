@@ -2,13 +2,10 @@ package com.ontey.files;
 
 import com.ontey.CustomCommand;
 import com.ontey.Main;
-import com.ontey.execution.Execution;
 import com.ontey.holder.CommandPaths;
 import com.ontey.log.Log;
 import com.ontey.types.AdvancedBroadcast;
 import com.ontey.types.Args;
-import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,6 +24,7 @@ public class Commands {
       
       if (!dir.exists()) {
          if (!dir.mkdirs()) {
+            Log.info("Couldn't create the commands directory. Disabling plugin");
             Main.disablePlugin();
             return;
          }
@@ -61,6 +59,7 @@ public class Commands {
    // This returns a list from either a String or a list
    
    @NotNull
+   @Deprecated(since = "2.0")
    public static List<String> getField(YamlConfiguration config, String command, String field) {
       return getField(config, command + "." + field);
    }
@@ -84,55 +83,16 @@ public class Commands {
    }
    
    @NotNull
-   public static List<String> getCommands(YamlConfiguration config, String command, CommandSender sender, String[] args) {
-      String commandsPath = CommandPaths.Commands.section(command);
-      if (!config.isConfigurationSection(commandsPath))
-         return getField(config, commandsPath);
-      
-      return resolveCommandsSection(config, commandsPath, sender, args, command);
+   public static List<String> getCommands(YamlConfiguration config, String command) {
+      return getField(config, CommandPaths.Commands.section(command));
    }
    
-   private static List<String> resolveCommandsSection(YamlConfiguration config, String path, CommandSender sender, String[] args, String command) {
-      ConfigurationSection section = config.getConfigurationSection(path);
-      if (section == null)
-         return new ArrayList<>(0);
-      
-      String condition = config.getString(CommandPaths.Commands.condition(command), null);
-      if (condition != null) {
-         boolean result = Execution.evalCondition(condition, sender, args);
-         String branchPath = result
-           ? CommandPaths.Commands.conditionTrue(command)
-           : CommandPaths.Commands.conditionFalse(command);
-         
-         if (config.isConfigurationSection(branchPath))
-            return resolveCommandsSection(config, branchPath, sender, args, command);
-         
-         List<String> branchList = config.getStringList(branchPath);
-         if (!branchList.isEmpty())
-            return branchList;
-         
-         return new ArrayList<>(0);
-      }
-      
-      List<String> list = config.getStringList(path);
-      if (!list.isEmpty())
-         return list;
-      
-      // TODO replace legacy way of only accepting commands as a name.
-      int idx = path.indexOf(".commands");
-      if (idx > 0)
-         return getField(config, path.substring(0, idx), "commands");
-      
-      return new ArrayList<>(0);
-   }
-   
-   @NotNull
    public static List<String> getAliases(YamlConfiguration config, String command) {
       return getField(config, CommandPaths.aliases(command));
    }
    
    public static Args getArgs(YamlConfiguration config, String command) {
-      return new Args(config, command); // TODO
+      return new Args(config, command);
    }
    
    public static String getPermission(YamlConfiguration config, String command) {

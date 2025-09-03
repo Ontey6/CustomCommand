@@ -43,14 +43,14 @@ public class Placeholders {
       return directions[index];
    }
    
-   static String onlinePlayers(@SuppressWarnings("SameParameterValue") String delimiter) {
+   static String onlinePlayers(String delimiter) {
       StringBuilder out = new StringBuilder();
-      
-      for(Player player : Bukkit.getOnlinePlayers())
+      for (Player player : Bukkit.getOnlinePlayers())
          out.append(delimiter).append(player.getName());
       
-      return out.substring(delimiter.length());
+      return out.isEmpty() ? "" : out.substring(delimiter.length());
    }
+   
    
    static Placeholder ph(String placeholder, Object replacement) {
       return new Placeholder(placeholder, String.valueOf(replacement));

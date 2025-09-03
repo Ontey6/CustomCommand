@@ -5,7 +5,7 @@ import com.ontey.files.Commands;
 import com.ontey.files.Config;
 import com.ontey.listeners.TabRemove;
 import com.ontey.log.Log;
-import org.bukkit.Bukkit;
+import com.ontey.updater.Updater;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class Main extends JavaPlugin {
@@ -14,12 +14,13 @@ public class Main extends JavaPlugin {
    
    public static boolean papi = false;
    
-   public static String version = "0.1";
+   public static String version = "0.2";
    
    @Override
    public void onEnable() {
       instance = this;
       load();
+      Updater.checkForUpdates();
    }
    
    private void load() {
@@ -28,7 +29,7 @@ public class Main extends JavaPlugin {
       Startup.loadCommands();
       loadListeners();
       
-      if(Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI"))
+      if(getServer().getPluginManager().isPluginEnabled("PlaceholderAPI"))
          papi = true;
    }
    
@@ -48,6 +49,6 @@ public class Main extends JavaPlugin {
    
    public static void disablePlugin() {
       Log.info("Disabling plugin");
-      Bukkit.getPluginManager().disablePlugin(instance);
+      instance.getServer().getPluginManager().disablePlugin(instance);
    }
 }

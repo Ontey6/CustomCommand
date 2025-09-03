@@ -57,6 +57,7 @@ public class CustomCommand {
       this.messages = Commands.getMessages(config, name);
       this.broadcasts = Commands.getBroadcasts(config, name);
       this.advancedBroadcast = AdvancedBroadcast.of(config, name);
+      this.commands = Commands.getCommands(config, name);
       this.args = Commands.getArgs(config, name);
       this.tab = new Tab(config, name);
    }
@@ -67,8 +68,6 @@ public class CustomCommand {
       
       if(Config.HOTSWAP)
          loadMutable(true);
-      
-      commands = Commands.getCommands(config, name, sender, args);
       
       Execution.runCommands(commands, sender, args);
       Execution.sendMessages(messages, sender, args);

@@ -26,7 +26,9 @@ public class Execution {
                sender.sendMessage(formatMessage(replaceArgs(msg, args), sender));
    }
    
+   // TODO fix
    public static void runCommands(List<String> commands, CommandSender sender, String[] args) {
+      resolveConditions(sender, args, commands);
       if(!commands.isEmpty())
          for(String cmd : commands)
             if(!formatCommand(sender, replaceArgs(cmd, args)).isEmpty())
@@ -63,6 +65,31 @@ public class Execution {
    }
    
    // Helpers
+   
+   private static List<String> resolveConditions(CommandSender sender, String[] args, List<String> commands) {
+      if(commands.isEmpty())
+         return commands;
+      
+      for(int i = 0; i < commands.size(); i++) {
+         String line = commands.get(i);
+         if(line.startsWith(Config.ah("condition"))) {
+            String condition = line.substring(Config.ah("condition").length());
+            boolean result = evalCondition(condition, sender, args);
+            
+            commands.remove(i);
+            
+            if(!result && i < commands.size())
+               commands.remove(i);
+            
+            i--;
+            continue;
+         }
+         if(line.startsWith("\\" + Config.ah("condition")))
+            commands.set(i, line.substring(1));
+      }
+      return commands;
+   }
+   
    
    private static String replacePlaceholders(CommandSender sender, @NotNull String str) {
       str = Placeholders.apply(sender, str);
@@ -148,6 +175,13 @@ public class Execution {
    }
    
    // evaluation
+   
+   public static boolean evalCondition(List<String> conditions, CommandSender sender, String[] args) {
+      for(String str : conditions)
+         if(!evalCondition(str, sender, args))
+            return false;
+      return true;
+   }
    
    public static boolean evalCondition(String str, CommandSender sender, String[] args) {
       if (str == null || str.isBlank())
