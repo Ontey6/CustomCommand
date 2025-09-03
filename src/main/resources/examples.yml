@@ -50,5 +50,30 @@ get:
 
 placeholder:
   message: '&e<arg1>&7:&b <<arg1>>'
+  aliases:
+    - ph
   args:
     1: []
+  tab:
+    1: name
+
+evaluate:
+  commands:
+    - '<!condition> <arg1..>'
+    - '<!msg>&atrue'
+    - '<!condition> <arg1..> != true' # only works if placeholders return "true" for a true value
+    - '<!msg>&cfalse'
+  aliases: eval
+  args: []
+  tab:
+    1: []
+    2:
+      - '=='
+      - '=?=' # ignore case
+      - '!='
+      - '!?=' # ignore case
+      - '>='
+      - '<='
+      - '>'
+      - '<'
+    3: []

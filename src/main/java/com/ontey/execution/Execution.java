@@ -26,7 +26,6 @@ public class Execution {
                sender.sendMessage(formatMessage(replaceArgs(msg, args), sender));
    }
    
-   // TODO fix
    public static void runCommands(List<String> commands, CommandSender sender, String[] args) {
       resolveConditions(sender, args, commands);
       if(!commands.isEmpty())

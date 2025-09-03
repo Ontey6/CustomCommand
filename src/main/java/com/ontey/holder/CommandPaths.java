@@ -45,6 +45,10 @@ public class CommandPaths {
       return replaced(TAB, command);
    }
    
+   public static String commands(String command) {
+      return replaced(COMMANDS, command);
+   }
+   
    // Constants
    
    private static String MESSAGE;
@@ -56,6 +60,7 @@ public class CommandPaths {
    private static String PERMISSION_REQUIRED;
    private static String ARGS;
    private static String TAB;
+   private static String COMMANDS;
    
    // Load
    
@@ -69,9 +74,9 @@ public class CommandPaths {
       PERMISSION_REQUIRED = getOrDefault("paths.permission-required", "%cmd.permission-required");
       ARGS = getOrDefault("paths.args", "%cmd.args");
       TAB = getOrDefault("paths.tab", "%cmd.tab");
+      COMMANDS = getOrDefault("paths.commands", "%cmd.commands");
       
       AdvancedBroadcast.load();
-      Commands.load();
    }
    
    // Advanced Broadcast
@@ -121,48 +126,6 @@ public class CommandPaths {
       
       private static String replaced(String str, String command) {
          return str.replace("%abc", section(command)).replace("%cmd", command);
-      }
-   }
-   
-   public static class Commands {
-      // Methods
-      
-      public static String section(String command) {
-         return CommandPaths.replaced(COMMANDS, command);
-      }
-      
-      public static String condition(String command) {
-         return replaced(CONDITION, command);
-      }
-      
-      public static String conditionTrue(String command) {
-         return replaced(CONDITION_TRUE, command);
-      }
-      
-      public static String conditionFalse(String command) {
-         return replaced(CONDITION_FALSE, command);
-      }
-      
-      // Constants
-      
-      private static String COMMANDS;
-      private static String CONDITION;
-      private static String CONDITION_TRUE;
-      private static String CONDITION_FALSE;
-      
-      // Load Commands
-      
-      private static void load() {
-         COMMANDS = getOrDefault("paths.commands", "%cmd.commands");
-         CONDITION = getOrDefault("paths.command-condition", "%cmds.condition");
-         CONDITION_TRUE = getOrDefault("paths.command-condition-true", "%cmds.condition.true");
-         CONDITION_FALSE = getOrDefault("paths.command-condition-false", "%cmds.condition.false");
-      }
-      
-      // Helper
-      
-      private static String replaced(String str, String command) {
-         return str.replace("%cmds", section(command)).replace("%cmd", command);
       }
    }
    

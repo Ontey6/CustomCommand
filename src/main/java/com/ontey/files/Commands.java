@@ -84,7 +84,7 @@ public class Commands {
    
    @NotNull
    public static List<String> getCommands(YamlConfiguration config, String command) {
-      return getField(config, CommandPaths.Commands.section(command));
+      return getField(config, CommandPaths.commands(command));
    }
    
    public static List<String> getAliases(YamlConfiguration config, String command) {
