@@ -62,7 +62,7 @@ public class Startup {
       if (!dir.exists() || !dir.isDirectory())
          return out;
       
-      File[] files = dir.listFiles((d, name) -> name.endsWith(".yml"));
+      File[] files = dir.listFiles((d, name) -> name.endsWith(".yml") || name.endsWith(".yaml"));
       
       if (files == null)
          return out;

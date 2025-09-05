@@ -1,11 +1,3 @@
-version 0.3
+version 0.3 Patch 1
 
-added new namespace key on commands
-
-added or operator (||) to conditions
-
-also added &&, but in different ways for abc and commands
-abc: simply made 'condition' a Field
-commands: after a conditional line, just add another one
-
-added default tab completion (not tab)
+Also allow files with the file ending '.yaml' instead of just 'yml'
