@@ -19,7 +19,7 @@ greet-all:
 
 # extended message and broadcast
 # They can be lists
-pingall-all:
+ping-all:
   message:
     - '&d---------------------'
     - '&enow pinging everyone!'
@@ -30,13 +30,15 @@ pingall-all:
     - '&d---------------------'
 
 # advanced broadcast
-abc:
+advanced-broadcast:
   broadcast:
     range: 10 # range from the player
     permission: ccmd.struct.bc
     condition: '<player.isOp>' # placeholders are ran as the player who received broadcast
     broadcast:
       - 'Hello from &e<player>&r!'
+    aliases:
+      - abc
 
 # arguments
 get:
@@ -48,6 +50,7 @@ get:
     2: [] # item
     3: int # count
 
+# tab completer
 placeholder:
   message: '&e<arg1>&7:&b <<arg1>>'
   aliases:
@@ -57,23 +60,14 @@ placeholder:
   tab:
     1: name
 
+# command conditions
 evaluate:
   commands:
-    - '<!condition> <arg1..>'
+    - '<!condition> <arg1>'
     - '<!msg>&atrue'
-    - '<!condition> <arg1..> != true' # only works if placeholders return "true" for a true value
-    - '<!msg>&cfalse'
+    - '<!condition> <arg1> != true' # multiple lines of conditions
+    - '<!condition> <arg1> != yes'  # mean that both have to be true
+    - '<!msg>&cfalse'               # for the line after to be run
   aliases: eval
-  args: []
-  tab:
+  args:
     1: []
-    2:
-      - '=='
-      - '=?=' # ignore case
-      - '!='
-      - '!?=' # ignore case
-      - '>='
-      - '<='
-      - '>'
-      - '<'
-    3: []

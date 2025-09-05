@@ -1,22 +1,11 @@
-changed config key format.command-prefix to format.namespace
-adjusted description
+version 0.3
 
-Changed advanced broadcast's field messages to broadcast to match change from v0.02(version not available) in examples.yml
+added new namespace key on commands
 
-added new permission-required field in commands
+added or operator (||) to conditions
 
-added simple tab completer
-updated examples.yml
+also added &&, but in different ways for abc and commands
+abc: simply made 'condition' a Field
+commands: after a conditional line, just add another one
 
-switched placeholders around (now also on the wiki)
-removed 'degrees', 'tab' and 'circumflex' placeholders because of redundancy
-
-added customizable paths
-
-Added logging when disabling plugin because the plugin is unable to create the commands directory
-
-embedded conditions into commands via actionholder
-
-made actionholders work without throwing a NullPointerException by simply not returning null...
-
-added an updater
+added default tab completion (not tab)

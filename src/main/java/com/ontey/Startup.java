@@ -34,7 +34,7 @@ public class Startup {
          
          @Override
          public @NotNull List<String> tabComplete(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args) {
-            return command.tab.getApplicableTabCompleter(args);
+            return command.tab.getTabCompleter(args);
          }
       };
       
@@ -43,7 +43,7 @@ public class Startup {
       cmd.setUsage(Config.getOrDefault(command.usage, Config.DEFAULT_USAGE));
       cmd.setPermission(Commands.getPermission(command.config, command.name));
       
-      commandMap.register(Config.NAMESPACE, cmd);
+      commandMap.register(Commands.getNamespace(command.config, command.name), cmd);
    }
    
    

@@ -5,10 +5,6 @@
 format:
   # The prefix of console logs
   prefix: '[CCMD]'
-  # The prefix when referencing the full command
-  # example: minecraft's /tell can be referenced via /minecraft:tell. Then minecraft is the namespace
-  # format: namespace : command
-  namespace: 'customcommand'
   # The placeholder format: < ph >
   placeholder-format: '<%ph>'
   # the action-holder format: < ! ah >
@@ -23,9 +19,11 @@ defaults:
   permission: 'ccmd.command.%cmd'
   usage: '/<command>' # <command> -> command's name, \n -> new line
   description: 'Server Command'
+  namespace: 'customcommand'
+  no-tab: players # players or none
 
 tab:
-  # This will remove all ccmd's with a prefix from tab. they can still be executed just fine
+  # This will hide all ccmd's with a prefix from tab. they can still be executed just fine
   # see: command-prefix in format
   remove-namespaced-plugin-commands: false
 
@@ -63,3 +61,5 @@ paths:
   permission-required: '%cmd.permission-required'
   args: '%cmd.args'
   tab: '%cmd.tab'
+  namespace: '%cmd.namespace'
+  no-tab: '%cmd.no-tab'

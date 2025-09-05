@@ -12,11 +12,11 @@ public class AdvancedBroadcast {
    
    public String permission;
    
-   public String condition;
+   public List<String> condition;
    
    public List<String> broadcast;
    
-   public AdvancedBroadcast(int range, String permission, String condition, List<String> broadcast) {
+   public AdvancedBroadcast(int range, String permission, List<String> condition, List<String> broadcast) {
       this.range = range;
       this.permission = permission;
       this.broadcast = broadcast;
@@ -27,6 +27,6 @@ public class AdvancedBroadcast {
    public static AdvancedBroadcast of(YamlConfiguration config, String command) {
       if(!config.isConfigurationSection(CommandPaths.AdvancedBroadcast.section(command)))
          return null;
-      return Commands.advancedBroadcast(config, command);
+      return Commands.getAdvancedBroadcast(config, command);
    }
 }

@@ -3,6 +3,7 @@ package com.ontey.files;
 import com.ontey.Main;
 import com.ontey.holder.CommandPaths;
 import com.ontey.log.Log;
+import com.ontey.tab.Tab;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
@@ -142,6 +143,26 @@ public class Config {
       return DEFAULT_PERMISSION.replace("%cmd", command);
    }
    
+   public static NoTab getNoTab(String str) {
+      if(str == null)
+         return null;
+      return switch(str.toLowerCase()) {
+         case "none" -> NoTab.NONE;
+         case "players" -> NoTab.PLAYERS;
+         default -> null;
+      };
+   }
+   
+   // TODO fix
+   public static List<String> noTab() {
+      Config.NoTab noTabMode = getNoTab(config.getString(NO_TAB_PATH));
+      return switch(noTabMode) {
+         case NONE -> List.of();
+         case PLAYERS -> Tab.onlinePlayers();
+         case null -> Commands.getField(config, NO_TAB_PATH);
+      };
+   }
+   
    // Constants
    
    public static void loadConstants() {
@@ -153,17 +174,18 @@ public class Config {
       DEFAULT_PERMISSION = getOrDefault("defaults.permission", "ccmd.command.%cmd");
       DEFAULT_USAGE = getOrDefault("defaults.usage", "/<command>");
       DEFAULT_DESCRIPTION = getOrDefault("defaults.description", "Server Command");
-      NAMESPACE = getOrDefault("format.namespace", "customcommand");
+      DEFAULT_NAMESPACE = getOrDefault("defaults.namespace", "customcommand");
       REMOVE_NAMESPACED_PLUGIN_COMMANDS = getOrDefault("tab.remove-namespaced-plugin-commands", false);
       REMOVE_NAMESPACED_COMMANDS = getOrDefault("tab.remove-namespaced-commands", false);
       REMOVE_COLORS_IN_CONSOLE = getOrDefault("remove-colors-in-console", false);
+      NO_TAB_PATH = "defaults.no-tab";
    }
    
-   public static String PREFIX, NAMESPACE;
+   public static String PREFIX, DEFAULT_NAMESPACE;
    
    public static String PLACEHOLDER_FORMAT, ACTIONHOLDER_FORMAT;
    
-   public static List<String> BOOLEAN_TRUE;
+   private static List<String> BOOLEAN_TRUE;
    
    public static String DEFAULT_PERMISSION, DEFAULT_USAGE, DEFAULT_DESCRIPTION;
    
@@ -172,4 +194,8 @@ public class Config {
    public static boolean REMOVE_NAMESPACED_PLUGIN_COMMANDS, REMOVE_NAMESPACED_COMMANDS;
    
    public static boolean REMOVE_COLORS_IN_CONSOLE;
+   
+   private static String NO_TAB_PATH;
+   
+   public enum NoTab { NONE, PLAYERS }
 }

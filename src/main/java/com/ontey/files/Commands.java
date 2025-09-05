@@ -4,9 +4,12 @@ import com.ontey.CustomCommand;
 import com.ontey.Main;
 import com.ontey.holder.CommandPaths;
 import com.ontey.log.Log;
+import com.ontey.tab.Tab;
 import com.ontey.types.AdvancedBroadcast;
 import com.ontey.types.Args;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -116,12 +119,25 @@ public class Commands {
       return String.join("\n", getField(config, CommandPaths.usage(command)));
    }
    
-   public static AdvancedBroadcast advancedBroadcast(YamlConfiguration config, String command) {
+   public static AdvancedBroadcast getAdvancedBroadcast(YamlConfiguration config, String command) {
       int range = config.getInt(CommandPaths.AdvancedBroadcast.range(command), -1);
       String permission = config.getString(CommandPaths.AdvancedBroadcast.permission(command));
       List<String> broadcast = getField(config, CommandPaths.AdvancedBroadcast.broadcast(command));
-      String condition = config.getString(CommandPaths.AdvancedBroadcast.condition(command));
+      List<String> condition = getField(config, CommandPaths.AdvancedBroadcast.condition(command));
       
       return new AdvancedBroadcast(range, permission, condition, broadcast);
+   }
+   
+   public static String getNamespace(YamlConfiguration config, String command) {
+      return config.getString(CommandPaths.namespace(command), Config.DEFAULT_NAMESPACE);
+   }
+   
+   public static List<String> getNoTab(YamlConfiguration config, String command) {
+      Config.NoTab noTabMode = Config.getNoTab(config.getString(CommandPaths.noTab(command)));
+      return switch(noTabMode) {
+         case NONE -> List.of();
+         case PLAYERS -> Tab.onlinePlayers();
+         case null -> Config.noTab();
+      };
    }
 }

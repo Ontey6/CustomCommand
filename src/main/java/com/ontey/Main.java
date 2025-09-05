@@ -14,7 +14,7 @@ public class Main extends JavaPlugin {
    
    public static boolean papi = false;
    
-   public static String version = "0.2";
+   public static String version = "0.3";
    
    @Override
    public void onEnable() {
@@ -34,7 +34,7 @@ public class Main extends JavaPlugin {
    }
    
    private void loadPluginCommand() {
-      //noinspection DataFlowIssue
+      // noinspection DataFlowIssue
       getCommand("customcommands").setExecutor(new MainCommand());
    }
    

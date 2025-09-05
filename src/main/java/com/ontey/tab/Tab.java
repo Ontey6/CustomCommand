@@ -2,8 +2,10 @@ package com.ontey.tab;
 
 import com.ontey.files.Commands;
 import com.ontey.holder.CommandPaths;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +35,7 @@ public class Tab {
       return i - 1;
    }
    
-   public List<List<String>> getTabCompleter() {
+   private List<List<String>> rawTabCompleter() {
       List<List<String>> out = new ArrayList<>();
       ConfigurationSection section = config.getConfigurationSection(path);
       if (section == null)
@@ -48,13 +50,20 @@ public class Tab {
       return out;
    }
    
-   public List<String> getApplicableTabCompleter(String[] args) {
-      if(args.length > length())
-         return List.of();
-      return getTabCompleter().get(args.length - 1);
+   public List<String> getTabCompleter(String[] args) {
+      if(args.length > length() || rawTabCompleter().get(args.length - 1).isEmpty())
+         return Commands.getNoTab(config, command);
+      return rawTabCompleter().get(args.length - 1);
    }
    
-   private String str(Object obj) {
-      return obj == null ? "" : obj.toString();
+   private static String str(Object obj) {
+      return obj.toString();
+   }
+   
+   public static List<String> onlinePlayers() {
+      List<String> out = new ArrayList<>();
+      for(Player player : Bukkit.getOnlinePlayers())
+         out.add(player.getName());
+      return out;
    }
 }

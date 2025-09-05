@@ -12,6 +12,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -20,40 +22,45 @@ import java.util.regex.Pattern;
 public class Execution {
    
    public static void sendMessages(List<String> messages, CommandSender sender, String[] args) {
-      if(!messages.isEmpty())
-         for(String msg : messages)
-            if(!msg.isEmpty())
-               sender.sendMessage(formatMessage(replaceArgs(msg, args), sender));
+      if(messages.isEmpty())
+         return;
+      for(String msg : messages)
+         if(!msg.isEmpty())
+            sender.sendMessage(formatMessage(replaceArgs(msg, args), sender));
    }
    
    public static void runCommands(List<String> commands, CommandSender sender, String[] args) {
       resolveConditions(sender, args, commands);
-      if(!commands.isEmpty())
-         for(String cmd : commands)
-            if(!formatCommand(sender, replaceArgs(cmd, args)).isEmpty())
-               Bukkit.dispatchCommand(sender, formatCommand(sender, replaceArgs(cmd, args)));
+      if(commands.isEmpty())
+         return;
+      for(String cmd : commands) {
+         String formatted = formatCommand(sender, replaceArgs(cmd, args));
+         if(!formatted.isEmpty())
+            Bukkit.dispatchCommand(sender, formatted);
+      }
    }
    
    public static void sendBroadcasts(List<String> broadcasts, CommandSender sender, String[] args) {
-      if(!broadcasts.isEmpty())
-         for(Player player : Bukkit.getOnlinePlayers())
-            for(String bc : broadcasts)
-               if(!bc.isEmpty())
-                  player.sendMessage(formatMessage(replaceArgs(bc, args), sender));
+      if(broadcasts.isEmpty())
+         return;
+      for(Player player : Bukkit.getOnlinePlayers())
+         for(String bc : broadcasts)
+            if(!bc.isEmpty())
+               player.sendMessage(formatMessage(replaceArgs(bc, args), sender));
    }
    
    public static void sendAdvancedBroadcast(AdvancedBroadcast advancedBroadcast, CommandSender sender, String[] args) {
-      if (advancedBroadcast == null)
+      if(advancedBroadcast == null)
          return;
       String permission = advancedBroadcast.permission;
-      String condition = advancedBroadcast.condition;
+      List<String> condition = advancedBroadcast.condition;
       double range = advancedBroadcast.range;
       Location senderLoc = (sender instanceof Player p) ? p.getLocation() : null;
       
       for (Player player : Bukkit.getOnlinePlayers()) {
          if (permission != null && !player.hasPermission(permission))
             continue;
-         if(!evalCondition(condition, sender, args))
+         if (!evalConditions(condition, sender, args))
             continue;
          if (range != -1 && senderLoc != null)
             if (!player.getWorld().equals(senderLoc.getWorld()) || player.getLocation().distance(senderLoc) > range)
@@ -63,7 +70,7 @@ public class Execution {
       }
    }
    
-   // Helpers
+   // === Helpers ===
    
    private static List<String> resolveConditions(CommandSender sender, String[] args, List<String> commands) {
       if(commands.isEmpty())
@@ -71,24 +78,32 @@ public class Execution {
       
       for(int i = 0; i < commands.size(); i++) {
          String line = commands.get(i);
+         
          if(line.startsWith(Config.ah("condition"))) {
-            String condition = line.substring(Config.ah("condition").length());
-            boolean result = evalCondition(condition, sender, args);
+            int start = i;
+            boolean allTrue = true;
             
-            commands.remove(i);
+            while(i < commands.size() && commands.get(i).startsWith(Config.ah("condition"))) {
+               String condLine = commands.get(i).substring(Config.ah("condition").length());
+               boolean result = evalCondition(condLine, sender, args);
+               
+               commands.remove(i);
+               if(!result)
+                  allTrue = false;
+            }
             
-            if(!result && i < commands.size())
+            if(!allTrue && i < commands.size())
                commands.remove(i);
             
-            i--;
+            i = start - 1;
             continue;
          }
+         
          if(line.startsWith("\\" + Config.ah("condition")))
             commands.set(i, line.substring(1));
       }
       return commands;
    }
-   
    
    private static String replacePlaceholders(CommandSender sender, @NotNull String str) {
       str = Placeholders.apply(sender, str);
@@ -109,25 +124,23 @@ public class Execution {
    
    private static String replaceArg(String str, List<String> list, int i, String[] args) {
       str = str
-        .replace(Config.ph("arg" + i), args[i - 1]) // argX
-        .replace(Config.ph("arg" + i + ".."), join(list, i, args.length)) //  argX..
-        .replace(Config.ph("arg.." + i), join(list, 1, i)); //   arg..X
+        .replace(Config.ph("arg" + i), args[i - 1])
+        .replace(Config.ph("arg" + i + ".."), join(list, i, args.length))
+        .replace(Config.ph("arg.." + i), join(list, 1, i));
       
-      for (int j = i; j <= args.length; j++)
-         str = str.replace(Config.ph("arg" + i + ".." + j), join(list, i, j)); // argX..Y
+      for(int j = i; j <= args.length; j++)
+         str = str.replace(Config.ph("arg" + i + ".." + j), join(list, i, j));
       
       return str;
    }
-   
    
    private static String join(List<String> list, int start, int end) {
       return String.join(" ", list.subList(start - 1, end));
    }
    
-   
-   private static String formatMessage(String message, CommandSender sender) {
+   public static String formatMessage(String message, CommandSender sender) {
       if(message == null)
-         return null;
+         return "";
       
       String str =
         sender instanceof ConsoleCommandSender && Config.REMOVE_COLORS_IN_CONSOLE
@@ -135,10 +148,9 @@ public class Execution {
           : translateColorCodes(message);
       
       if(str.startsWith(Config.ph("no replace")))
-         return str.substring(Config.ph("no replace").length());
+         str = str.substring(Config.ph("no replace").length());
       
       str = replacePlaceholders(sender, str);
-      
       return str;
    }
    
@@ -146,8 +158,8 @@ public class Execution {
       if(str == null)
          return null;
       return str
-        .replaceAll("(?<!&)&([0-9a-fk-or])", "§$1") // replace &<c> with §<c>
-        .replaceAll("&&([0-9a-fk-or])", "&$1");     // replace &&<c> with &<c>
+        .replaceAll("(?<!&)&([0-9a-fk-or])", "§$1")
+        .replaceAll("&&([0-9a-fk-or])", "&$1");
    }
    
    private static String removeColorCodes(String str) {
@@ -162,9 +174,7 @@ public class Execution {
       str = translateColorCodes(str);
       if(str.startsWith(Config.ph("no replace")))
          return str.substring(Config.ph("no replace").length());
-      str = replacePlaceholders(sender, str);
-      
-      return str;
+      return replacePlaceholders(sender, str);
    }
    
    private static String replacePAPI(CommandSender sender, String str) {
@@ -173,9 +183,11 @@ public class Execution {
       return str;
    }
    
-   // evaluation
+   // === Condition evaluation stays the same ===
    
-   public static boolean evalCondition(List<String> conditions, CommandSender sender, String[] args) {
+   public static boolean evalConditions(List<String> conditions, CommandSender sender, String[] args) {
+      if (conditions.isEmpty())
+         return true;
       for(String str : conditions)
          if(!evalCondition(str, sender, args))
             return false;
@@ -183,63 +195,87 @@ public class Execution {
    }
    
    public static boolean evalCondition(String str, CommandSender sender, String[] args) {
-      if (str == null || str.isBlank())
+      if(str == null || str.isBlank())
          return true;
       
       str = str.replace(" ", "");
-      String replaced = replacePlaceholders(sender, replaceArgs(str, args)); // needed here
+      String replaced = replacePlaceholders(sender, replaceArgs(str, args));
       
-      // Operator check
-      String[] ops = {"==", "=?=", "!=", "!?=", ">=", "<=", ">", "<"};
-      for (String op : ops) {
-         Pattern pattern = Pattern.compile(Pattern.quote(op));
-         Matcher matcher = pattern.matcher(replaced);
-         
-         while (matcher.find()) {
-            int idx = matcher.start();
-            
-            // count backslashes before operator
+      List<String> parts = splitOrParts(replaced);
+      if(parts.size() > 1) {
+         for(String part : parts)
+            if(evalCondition(part, sender, args))
+               return true;
+         return false;
+      }
+      return evalSingle(parts.getFirst());
+   }
+   
+   private static List<String> splitOrParts(String str) {
+      List<String> parts = new ArrayList<>();
+      int last = 0;
+      for(int i = 0; i < str.length() - 1; i++) {
+         if(str.charAt(i) == '|' && str.charAt(i + 1) == '|') {
             int bs = 0;
-            for (int i = idx - 1; i >= 0 && replaced.charAt(i) == '\\'; i--)
+            for (int j = i - 1; j >= 0 && str.charAt(j) == '\\'; j--)
                bs++;
-            
-            // skip if odd number of backslashes (means escaped)
-            if (bs % 2 == 1)
-               continue;
-            
-            String left = replaced.substring(0, idx);
-            String right = replaced.substring(idx + op.length());
-            
-            // remove escapes: turn "\==" into "=="
-            left = left.replace("\\\\", "\\").replace("\\" + op, op);
-            right = right.replace("\\\\", "\\").replace("\\" + op, op);
-            
-            return compare(left, right, op);
+            if(bs % 2 == 0) {
+               parts.add(str.substring(last, i));
+               last = i + 2;
+               i++;
+            }
          }
       }
+      parts.add(str.substring(last));
+      return parts;
+   }
+   
+   private static boolean evalSingle(String expr) {
+      String[] ops = {"==", "=?=", "!=", "!?=", ">=", "<=", ">", "<"};
+      for(String op : ops) {
+         Pattern pattern = Pattern.compile(Pattern.quote(op));
+         Matcher matcher = pattern.matcher(expr);
+         
+         while(matcher.find()) {
+            int idx = matcher.start();
+            int bs = 0;
+            for (int i = idx - 1; i >= 0 && expr.charAt(i) == '\\'; i--)
+               bs++;
+            if(bs % 2 == 1)
+               continue;
+            return findAndCompare(expr, idx, op);
+         }
+      }
+      return Config.isTrue(expr.toLowerCase());
+   }
+   
+   private static boolean findAndCompare(String expr, int idx, String op) {
+      String left = expr.substring(0, idx);
+      String right = expr.substring(idx + op.length());
       
-      // Direct boolean check
-      String lower = replaced.toLowerCase();
-      return Config.isTrue(lower);
+      left = left.replace("\\\\" + op, op);
+      right = right.replace("\\\\" + op, op);
+      
+      return compare(left, right, op);
    }
    
    private static boolean compare(String left, String right, String op) {
       boolean isNumber = isNumeric(left) && isNumeric(right);
       
-      if (isNumber) {
+      if(isNumber) {
          double l = Double.parseDouble(left);
          double r = Double.parseDouble(right);
-         return switch (op) {
+         return switch(op) {
             case "==", "=?=" -> l == r;
             case "!=", "!?=" -> l != r;
-            case ">"  -> l > r;
-            case "<"  -> l < r;
+            case ">" -> l > r;
+            case "<" -> l < r;
             case ">=" -> l >= r;
             case "<=" -> l <= r;
             default -> false;
          };
       }
-      return switch (op) {
+      return switch(op) {
          case "==" -> left.equals(right);
          case "!=" -> !left.equals(right);
          case "=?=" -> left.equalsIgnoreCase(right);
@@ -249,7 +285,7 @@ public class Execution {
    }
    
    private static boolean isNumeric(String str) {
-      if (str == null)
+      if(str == null)
          return false;
       return str.matches("[+-]?\\d+(\\.\\d+)?");
    }
