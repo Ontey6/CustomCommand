@@ -1,4 +1,4 @@
-This build is meant for IntelliJ and won't support any other IDE's actively
+Wiki on [Github Wiki](https://github.com/Ontey6/CustomCommand/wiki/Getting-Started)
 
 Links:
 
