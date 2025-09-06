@@ -7,3 +7,5 @@ reworked Actionholders code and added: reload-config, reload-commands, reload-co
 Added support for placeholders and Strings in general in abc range
 
 made abc permission a Field
+
+removed wrongfully allowed access to actionholders in messages

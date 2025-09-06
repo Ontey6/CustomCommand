@@ -4,7 +4,6 @@ import com.ontey.Main;
 import com.ontey.files.Config;
 import com.ontey.holder.ActionHolders;
 import com.ontey.holder.Placeholders;
-import com.ontey.log.Log;
 import com.ontey.types.AdvancedBroadcast;
 import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.Bukkit;
@@ -113,9 +112,9 @@ public class Execution {
    }
    
    static String replacePlaceholders(CommandSender sender, @NotNull String str) {
-      str = ActionHolders.apply(sender, str);
       str = replacePAPI(sender, str);
-      return Placeholders.apply(sender, str);
+      str = Placeholders.apply(sender, str);
+      return MacroStrings.replaceMacroStrings(str);
    }
    
     public static String replaceArgs(@NotNull String str, String[] args) {
@@ -180,6 +179,7 @@ public class Execution {
          return "";
       if(str.startsWith(Config.ph("no replace")))
          return str.substring(Config.ph("no replace").length());
+      str = ActionHolders.apply(sender, str);
       str = replacePlaceholders(sender, str);
       return translateColorCodes(str);
    }
