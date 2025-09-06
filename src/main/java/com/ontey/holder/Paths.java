@@ -2,10 +2,7 @@ package com.ontey.holder;
 
 import static com.ontey.files.Config.getOrDefault;
 
-/* Absolutely not Written by AI */
-/* Yeah, I like to enslave it */
-
-public class CommandPaths {
+public class Paths {
    
    // Methods
    
@@ -97,7 +94,7 @@ public class CommandPaths {
       // Methods
       
       public static String section(String command) {
-         return CommandPaths.replaced(ADVANCED_BROADCAST, command);
+         return Paths.replaced(ADVANCED_BROADCAST, command);
       }
       
       public static String range(String command) {

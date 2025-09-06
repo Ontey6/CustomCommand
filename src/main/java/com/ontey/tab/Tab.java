@@ -1,7 +1,7 @@
 package com.ontey.tab;
 
 import com.ontey.files.Commands;
-import com.ontey.holder.CommandPaths;
+import com.ontey.holder.Paths;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -21,7 +21,7 @@ public class Tab {
    public Tab(YamlConfiguration config, String command) {
       this.config = config;
       this.command = command;
-      this.path = CommandPaths.tab(command);
+      this.path = Paths.tab(command);
    }
    
    public int length() {

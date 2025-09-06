@@ -1,3 +1,9 @@
 version 0.3 Patch 1
 
-Also allow files with the file ending '.yaml' instead of just 'yml'
+Also allow files with the file ending '.yaml' instead of just '.yml'
+
+reworked Actionholders code and added: reload-config, reload-commands, reload-command ("<!reload-command>command-name")
+
+Added support for placeholders and Strings in general in abc range
+
+made abc permission a Field

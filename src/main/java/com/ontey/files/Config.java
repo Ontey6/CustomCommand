@@ -1,7 +1,7 @@
 package com.ontey.files;
 
 import com.ontey.Main;
-import com.ontey.holder.CommandPaths;
+import com.ontey.holder.Paths;
 import com.ontey.log.Log;
 import com.ontey.tab.Tab;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -46,7 +46,7 @@ public class Config {
       }
       
       loadConstants();
-      CommandPaths.load();
+      Paths.load();
    }
    
    public static void save() {

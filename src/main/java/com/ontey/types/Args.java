@@ -1,7 +1,7 @@
 package com.ontey.types;
 
 import com.ontey.files.Commands;
-import com.ontey.holder.CommandPaths;
+import com.ontey.holder.Paths;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.jetbrains.annotations.Nullable;
@@ -16,7 +16,7 @@ public class Args {
    
    public Args(YamlConfiguration config, String command) {
       this.config = config;
-      this.path = CommandPaths.args(command);
+      this.path = Paths.args(command);
    }
    
    public int getLength() {
