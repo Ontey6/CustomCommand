@@ -1,7 +1,7 @@
 package com.ontey.holder;
 
 import com.ontey.CustomCommand;
-import com.ontey.execution.Execution;
+import com.ontey.execution.Formation;
 import com.ontey.files.Commands;
 import com.ontey.files.Config;
 import com.ontey.reload.Reload;
@@ -29,7 +29,7 @@ public class ActionHolders {
          if(!msg.startsWith(ah("msg")))
             return msg;
          msg = msg.substring(ah("msg").length());
-         msg = Execution.formatMessage(msg, sender, args);
+         msg = Formation.formatMessage(msg, sender, args);
          sender.sendMessage(msg);
          return "";
       });
@@ -39,7 +39,7 @@ public class ActionHolders {
          if(!msg.startsWith(ah("broadcast")))
             return msg;
          msg = msg.substring(ah("broadcast").length());
-         msg = Execution.formatMessage(msg, sender, args);
+         msg = Formation.formatMessage(msg, sender, args);
          for(Player p : Bukkit.getOnlinePlayers())
             p.sendMessage(msg);
          return "";

@@ -26,8 +26,8 @@ public class Evaluation {
          return true;
       
       str = str.replace(" ", "");
-      str = Execution.replaceArgs(str, args);
-      str = Execution.replacePlaceholders(sender, str, args);
+      str = Replacement.replaceArgs(str, args);
+      str = Formation.replacePlaceholders(sender, str, args);
       
       List<String> parts = splitOrParts(str);
       if(parts.size() > 1) {
@@ -112,13 +112,46 @@ public class Evaluation {
       };
    }
    
-   static boolean isNumeric(String str) {
-      if(str == null)
-         return false;
-      return str.matches("[+-]?\\d+(\\.\\d+)?");
+   static List<String> resolveConditions(CommandSender sender, String[] args, List<String> commands) {
+      if(commands.isEmpty())
+         return commands;
+      
+      for(int i = 0; i < commands.size(); i++) {
+         String line = commands.get(i);
+         
+         if(line.startsWith(Config.ah("condition"))) {
+            int start = i;
+            boolean allTrue = true;
+            
+            while(i < commands.size() && commands.get(i).startsWith(Config.ah("condition"))) {
+               String condLine = commands.get(i).substring(Config.ah("condition").length());
+               boolean result = evalCondition(condLine, sender, args);
+               
+               commands.remove(i);
+               if(!result)
+                  allTrue = false;
+            }
+            
+            if(!allTrue && i < commands.size())
+               commands.remove(i);
+            
+            i = start - 1;
+            continue;
+         }
+         
+         if(line.startsWith("\\" + Config.ah("condition")))
+            commands.set(i, line.substring(1));
+      }
+      return commands;
    }
    
    static String str(Object obj) {
       return obj == null ? "" : obj.toString();
+   }
+   
+   private static boolean isNumeric(String str) {
+      if(str == null)
+         return false;
+      return str.matches("[+-]?\\d+(\\.\\d+)?");
    }
 }
