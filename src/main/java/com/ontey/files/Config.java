@@ -185,7 +185,7 @@ public class Config {
    
    public static String PLACEHOLDER_FORMAT, ACTIONHOLDER_FORMAT;
    
-   private static List<String> BOOLEAN_TRUE;
+   public static List<String> BOOLEAN_TRUE;
    
    public static String DEFAULT_PERMISSION, DEFAULT_USAGE, DEFAULT_DESCRIPTION;
    

@@ -27,7 +27,7 @@ public class Evaluation {
       
       str = str.replace(" ", "");
       str = Execution.replaceArgs(str, args);
-      str = Execution.replacePlaceholders(sender, str);
+      str = Execution.replacePlaceholders(sender, str, args);
       
       List<String> parts = splitOrParts(str);
       if(parts.size() > 1) {

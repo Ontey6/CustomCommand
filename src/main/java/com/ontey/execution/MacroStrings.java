@@ -1,36 +1,54 @@
 package com.ontey.execution;
 
+import org.bukkit.command.CommandSender;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MacroStrings {
    
-   public static String replaceMacroStrings(String str) {
-      // escapable with \ in front
-      // ')' escapable
-      Pattern pattern = Pattern.compile("(?<!\\\\)\\$\\((.*?)\\)");
+   public static String replaceMacroStrings(String str, CommandSender sender, String[] args) {
+      Pattern pattern = Pattern.compile("(?<!\\\\)\\$\\((.*?)(?<!\\\\)\\)");
       Matcher matcher = pattern.matcher(str);
+      StringBuilder sb = new StringBuilder();
       
       while (matcher.find()) {
-         str = str.substring(0, matcher.start()) + evalMacroStrings(matcher.group(1)) + str.substring(matcher.end());
+         String rep = evalMacroStrings(matcher.group(1), sender, args);
+         rep = rep == null ? "" : rep;
+         rep = rep.replace("\\)", ")");
+         matcher.appendReplacement(sb, Matcher.quoteReplacement(rep));
       }
-      return removeEscapedMacroStrings(str);
+      matcher.appendTail(sb);
+      return removeEscapedMacroStrings(sb.toString());
    }
    
    private static String removeEscapedMacroStrings(String str) {
       return str.replaceAll("\\\\(\\$\\((.*?)\\))", "$1");
    }
    
-   private static String evalMacroStrings(String str) {
+   private static String evalMacroStrings(String str, CommandSender sender, String[] args) {
       // num op num
       if(str.matches("[+-]?\\d+(\\.\\d+)?[*/%+^-][+-]?\\d+(\\.\\d+)?"))
          return evalCalculation(str.replace(" ", ""));
-      return str;
+      if(str.matches("(.*?)\\?(.*?):(.*?)"))
+         return evalTernary(str, sender, args);
+      return "$(" + str + ")";
+   }
+   
+   private static String evalTernary(String str, CommandSender sender, String[] args) {
+      int idx = str.indexOf('?');
+      String condition = str.substring(0, idx);
+      String _true = str.substring(idx + 1, str.indexOf(':', idx));
+      String _false = str.substring(str.indexOf(':', idx));
+      
+      boolean result = Evaluation.evalCondition(condition, sender, args);
+      
+      return result ? _true : _false;
    }
    
    private static String evalCalculation(String str) {
-      int idx = index(str, new char[]{'+', '*', '-', '/', '%', '^'});
-      if(idx < 0)
+      int idx = index(str, "*/%+^-");
+      if(idx == -1)
          return str;
       double left = Double.parseDouble(str.substring(0, idx));
       double right = Double.parseDouble(str.substring(idx + 1));
@@ -52,10 +70,10 @@ public class MacroStrings {
       };
    }
    
-   private static int index(String str, char[] chars) {
+   private static int index(String str, String chars) {
       for(int i = 1; i < str.length(); i++) {
          char c = str.charAt(i);
-         for(char aChar : chars)
+         for(char aChar : chars.toCharArray())
             if(aChar == c)
                return i;
       }

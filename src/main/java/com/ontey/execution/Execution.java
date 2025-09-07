@@ -25,7 +25,7 @@ public class Execution {
          return;
       for(String msg : messages)
          if(!msg.isEmpty())
-            sender.sendMessage(formatMessage(replaceArgs(msg, args), sender));
+            sender.sendMessage(formatMessage(replaceArgs(msg, args), sender, args));
    }
    
    public static void runCommands(List<String> commands, CommandSender sender, String[] args) {
@@ -33,7 +33,7 @@ public class Execution {
       if(commands.isEmpty())
          return;
       for(String cmd : commands) {
-         String formatted = formatCommand(sender, replaceArgs(cmd, args));
+         String formatted = formatCommand(sender, replaceArgs(cmd, args), args);
          if(!formatted.isEmpty())
             Bukkit.dispatchCommand(sender, formatted);
       }
@@ -45,7 +45,7 @@ public class Execution {
       for(Player player : Bukkit.getOnlinePlayers())
          for(String bc : broadcasts)
             if(!bc.isEmpty())
-               player.sendMessage(formatMessage(replaceArgs(bc, args), sender));
+               player.sendMessage(formatMessage(replaceArgs(bc, args), sender, args));
    }
    
    public static void sendAdvancedBroadcast(AdvancedBroadcast advancedBroadcast, CommandSender sender, String[] args) {
@@ -65,7 +65,7 @@ public class Execution {
             if (!player.getWorld().equals(senderLoc.getWorld()) || player.getLocation().distance(senderLoc) > range)
                continue;
          for(String msg : advancedBroadcast.broadcast)
-            player.sendMessage(formatMessage(msg, sender));
+            player.sendMessage(formatMessage(msg, sender, args));
       }
    }
    
@@ -111,10 +111,10 @@ public class Execution {
       return commands;
    }
    
-   static String replacePlaceholders(CommandSender sender, @NotNull String str) {
+   static String replacePlaceholders(CommandSender sender, @NotNull String str, String[] args) {
       str = replacePAPI(sender, str);
       str = Placeholders.apply(sender, str);
-      return MacroStrings.replaceMacroStrings(str);
+      return MacroStrings.replaceMacroStrings(str, sender, args);
    }
    
     public static String replaceArgs(@NotNull String str, String[] args) {
@@ -144,7 +144,7 @@ public class Execution {
       return String.join(" ", list.subList(start - 1, end));
    }
    
-   public static String formatMessage(String message, CommandSender sender) {
+   public static String formatMessage(String message, CommandSender sender, String[] args) {
       if(message == null)
          return "";
       
@@ -156,7 +156,7 @@ public class Execution {
       if(str.startsWith(Config.ph("no replace")))
          str = str.substring(Config.ph("no replace").length());
       
-      str = replacePlaceholders(sender, str);
+      str = replacePlaceholders(sender, str, args);
       return str;
    }
    
@@ -174,13 +174,13 @@ public class Execution {
         .replaceAll("&&([0-9a-fk-or])", "&$1");
    }
    
-   static String formatCommand(CommandSender sender, String str) {
+   static String formatCommand(CommandSender sender, String str, String[] args) {
       if(str == null)
          return "";
       if(str.startsWith(Config.ph("no replace")))
          return str.substring(Config.ph("no replace").length());
-      str = ActionHolders.apply(sender, str);
-      str = replacePlaceholders(sender, str);
+      str = ActionHolders.apply(sender, str, args);
+      str = replacePlaceholders(sender, str, args);
       return translateColorCodes(str);
    }
    

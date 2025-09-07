@@ -1,4 +1,4 @@
-version 0.3 Patch 1
+version 0.3
 
 Also allow files with the file ending '.yaml' instead of just '.yml'
 

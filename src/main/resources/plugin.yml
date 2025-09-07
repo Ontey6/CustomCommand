@@ -1,7 +1,7 @@
 name: CustomCommand
 version: '0.3'
 main: com.ontey.Main
-api-version: '1.21'
+api-version: '1.20.5'
 authors: [ Ontey ]
 description: Easily create custom commands
 

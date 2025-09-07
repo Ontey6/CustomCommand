@@ -16,14 +16,12 @@ import java.util.function.Function;
 
 public class ActionHolders {
    
-   private static final List<ActionHolder> holders = actionholders();
-   
    private static String ah(String str) {
       return Config.ah(str);
    }
    
    // TODO untested
-   private static List<ActionHolder> actionholders() {
+   private static List<ActionHolder> actionholders(String[] args) {
       List<BiFunction<CommandSender, String, String>> out = new ArrayList<>();
       
       // send a message
@@ -31,7 +29,7 @@ public class ActionHolders {
          if(!msg.startsWith(ah("msg")))
             return msg;
          msg = msg.substring(ah("msg").length());
-         msg = Execution.formatMessage(msg, sender);
+         msg = Execution.formatMessage(msg, sender, args);
          sender.sendMessage(msg);
          return "";
       });
@@ -41,7 +39,7 @@ public class ActionHolders {
          if(!msg.startsWith(ah("broadcast")))
             return msg;
          msg = msg.substring(ah("broadcast").length());
-         msg = Execution.formatMessage(msg, sender);
+         msg = Execution.formatMessage(msg, sender, args);
          for(Player p : Bukkit.getOnlinePlayers())
             p.sendMessage(msg);
          return "";
@@ -106,8 +104,8 @@ public class ActionHolders {
       return null;
    }
    
-   public static String apply(CommandSender sender, String str) {
-      for(ActionHolder holder : holders)
+   public static String apply(CommandSender sender, String str, String[] args) {
+      for(ActionHolder holder : actionholders(args))
          str = holder.apply(sender, str);
       return str;
    }
