@@ -28,7 +28,7 @@ public class MacroStrings {
    
    private static String evalMacroStrings(String str, CommandSender sender, String[] args) {
       // num op num
-      if(str.matches("[+-]?\\d+(\\.\\d+)?[*/%+^-][+-]?\\d+(\\.\\d+)?"))
+      if(str.replace(" ", "").matches("[+-]?\\d+(\\.\\d+)?[*/%+^-][+-]?\\d+(\\.\\d+)?"))
          return evalCalculation(str.replace(" ", ""));
       if(str.matches("(.*?)\\?(.*?):(.*?)"))
          return evalTernary(str, sender, args);
@@ -43,7 +43,7 @@ public class MacroStrings {
       
       boolean result = Evaluation.evalCondition(condition, sender, args);
       
-      return result ? _true : _false;
+      return result ? _true.trim() : _false.trim();
    }
    
    private static String evalCalculation(String str) {
@@ -71,10 +71,11 @@ public class MacroStrings {
    }
    
    private static int index(String str, String chars) {
+      // char at 0 has to be a digit -> no op there
       for(int i = 1; i < str.length(); i++) {
          char c = str.charAt(i);
          for(char aChar : chars.toCharArray())
-            if(aChar == c)
+            if(aChar == c && str.charAt(i - 1) != '\\')
                return i;
       }
       return -1;

@@ -10,8 +10,6 @@ import java.util.regex.Pattern;
 
 public class Evaluation {
    
-   // === Condition evaluation stays the same ===
-   
    public static boolean evalConditions(List<String> conditions, CommandSender sender, String[] args) {
       if (conditions.isEmpty())
          return true;
