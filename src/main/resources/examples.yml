@@ -71,3 +71,15 @@ evaluate:
   aliases: eval
   args:
     1: []
+
+# Macro Strings
+macro:
+  message: '\$(<arg1..>): "&e$(<arg1..>)&r"'
+  args: []
+  no-tab: none
+
+# just a utility
+yield:
+  message: '<arg1..>'
+  args: []
+  no-tab: none # none, players or any field

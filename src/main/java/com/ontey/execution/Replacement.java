@@ -6,13 +6,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.ontey.execution.Evaluation.str;
-
 public class Replacement {
    public static String replaceArgs(@NotNull String str, String[] args) {
       List<String> list = Arrays.asList(args);
-      
-      str = str.replace(Config.ph("args-length"), str(args.length));
       
       for (int i = 1; i <= args.length; i++)
          str = replaceArg(str, list, i, args);

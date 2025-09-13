@@ -30,7 +30,6 @@ public class Placeholders {
       }
    }
    
-   
    // stolen from emmerrei / ivanfromitaly
    // rewrote the massive if statement
    static String getDirection(float yaw) {
@@ -50,7 +49,6 @@ public class Placeholders {
       
       return out.isEmpty() ? "" : out.substring(delimiter.length());
    }
-   
    
    static Placeholder ph(String placeholder, Object replacement) {
       return new Placeholder(placeholder, String.valueOf(replacement));

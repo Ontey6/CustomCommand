@@ -48,7 +48,7 @@ paths:
   broadcast: '%cmd.broadcast'
   commands: '%cmd.commands'
 
-  advanced-broadcast: '%cmd.broadcast' # placeholder: %abc The advanced broadcast path (only the fields in this section support it)
+  advanced-broadcast: '%cmd.broadcast' # placeholder: %abc The advanced broadcast path (only the fields right below support it)
   advanced-broadcast-range: '%abc.range'
   advanced-broadcast-permission: '%abc.permission'
   advanced-broadcast-condition: '%abc.condition'
@@ -63,3 +63,11 @@ paths:
   tab: '%cmd.tab'
   namespace: '%cmd.namespace'
   no-tab: '%cmd.no-tab'
+
+placeholder-names:
+  # Format: default-name: new-name
+  # example:
+  #space: 'sp'
+
+actionholder-names:
+  # same as placeholder names

@@ -2,6 +2,8 @@ package com.ontey.holder;
 
 import com.ontey.files.Config;
 
+import java.util.regex.Pattern;
+
 public class Placeholder {
    
    // Fields
@@ -20,11 +22,12 @@ public class Placeholder {
    // methods
    
    public String apply(String str) {
-      return str.replace(format(), replacement);
+      str = str.replaceAll("(?<!\\\\)" + Pattern.quote(format()), replacement);
+      return str.replace("\\" + format(), format());
    }
    
    public String format() {
-      return Config.PLACEHOLDER_FORMAT.replace("%ph", placeholder);
+      return Config.ph(placeholder);
    }
    
    public String replacement() {

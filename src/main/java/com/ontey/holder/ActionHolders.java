@@ -4,6 +4,7 @@ import com.ontey.CustomCommand;
 import com.ontey.execution.Formation;
 import com.ontey.files.Commands;
 import com.ontey.files.Config;
+import com.ontey.log.Log;
 import com.ontey.reload.Reload;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
@@ -20,7 +21,6 @@ public class ActionHolders {
       return Config.ah(str);
    }
    
-   // TODO untested
    private static List<ActionHolder> actionholders(String[] args) {
       List<BiFunction<CommandSender, String, String>> out = new ArrayList<>();
       
@@ -81,6 +81,7 @@ public class ActionHolders {
          if(cmd == null) {
             if(sender.isOp())
                sender.sendMessage("actionholder reload-command couldn't find the specified command.\nChange it! '" + msg + "'");
+            Log.info("actionholder reload-command couldn't find the specified command.\nChange it! '" + msg + "'");
             return "";
          }
          cmd.loadMutable(true);

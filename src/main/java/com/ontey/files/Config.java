@@ -128,7 +128,9 @@ public class Config {
    // Config-specific methods
    
    public static String ph(String str) {
-      return PLACEHOLDER_FORMAT.replace("%ph", str);
+      if(!isString("placeholder-names." + str))
+         return PLACEHOLDER_FORMAT.replace("%ph", str);
+      return PLACEHOLDER_FORMAT.replace("%ph", getString("placeholder-names." + str));
    }
    
    public static String ah(String str) {
@@ -153,7 +155,6 @@ public class Config {
       };
    }
    
-   // TODO fix
    public static List<String> noTab() {
       Config.NoTab noTabMode = getNoTab(config.getString(NO_TAB_PATH));
       return switch(noTabMode) {

@@ -9,3 +9,9 @@ Added support for placeholders and Strings in general in abc range
 made abc permission a Field
 
 removed wrongfully allowed access to actionholders in messages
+
+added Macro Strings that make life easier.
+
+made placeholders escapable with a backslash
+
+added customizable placeholder names

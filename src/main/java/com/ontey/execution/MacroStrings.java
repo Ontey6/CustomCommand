@@ -1,5 +1,6 @@
 package com.ontey.execution;
 
+import com.ontey.files.Config;
 import org.bukkit.command.CommandSender;
 
 import java.util.regex.Matcher;
@@ -43,7 +44,7 @@ public class MacroStrings {
       
       boolean result = Evaluation.evalCondition(condition, sender, args);
       
-      return result ? _true.trim() : _false.trim();
+      return result ? tnSpace(_true.trim()) : tnSpace(_false.trim());
    }
    
    private static String evalCalculation(String str) {
@@ -54,9 +55,12 @@ public class MacroStrings {
       double right = Double.parseDouble(str.substring(idx + 1));
       char op = str.charAt(idx);
       
-      return trim(calculate(left, right, op));
+      return trimDecimal(calculate(left, right, op));
    }
    
+   private static String tnSpace(String str) {
+      return str.replace(Config.ph("tn.space"), " ");
+   }
    
    private static double calculate(double left, double right, char op) {
       return switch(op) {
@@ -66,7 +70,7 @@ public class MacroStrings {
          case '/' -> left / right;
          case '%' -> left % right;
          case '^' -> Math.pow(left, right);
-         default -> throw new IllegalStateException("A number might be too high: " + left + op + right);
+         default  -> throw new IllegalStateException("A number might be too high: " + left + op + right);
       };
    }
    
@@ -75,13 +79,13 @@ public class MacroStrings {
       for(int i = 1; i < str.length(); i++) {
          char c = str.charAt(i);
          for(char aChar : chars.toCharArray())
-            if(aChar == c && str.charAt(i - 1) != '\\')
+            if(aChar == c)
                return i;
       }
       return -1;
    }
    
-   private static String trim(double d) {
+   private static String trimDecimal(double d) {
       String str = String.valueOf(d);
       if(str.endsWith(".0"))
          return str.substring(0, str.length() - 2);

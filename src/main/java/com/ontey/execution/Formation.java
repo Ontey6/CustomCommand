@@ -10,6 +10,8 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import static com.ontey.execution.Evaluation.str;
+
 public class Formation {
    
    static String formatCommand(CommandSender sender, String str, String[] args) {
@@ -43,6 +45,7 @@ public class Formation {
    static String replacePlaceholders(CommandSender sender, @NotNull String str, String[] args) {
       str = replacePAPI(sender, str);
       str = Placeholders.apply(sender, str);
+      str = str.replace(Config.ph("args-length"), str(args.length));
       return MacroStrings.replaceMacroStrings(str, sender, args);
    }
    
