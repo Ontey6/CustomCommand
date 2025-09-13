@@ -2,7 +2,7 @@ Wiki on [Github Wiki](https://github.com/Ontey6/CustomCommand/wiki/Getting-Start
 
 Links:
 
-[Modrinth(not available yet)](https://modrinth.com/plugin/ccmd)
+[Modrinth](https://modrinth.com/plugin/ccmd)
 
 [Bukkit](https://dev.bukkit.org/projects/customcommand)
 
