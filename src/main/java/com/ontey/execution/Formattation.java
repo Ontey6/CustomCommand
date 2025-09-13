@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 import static com.ontey.execution.Evaluation.str;
 
-public class Formation {
+public class Formattation {
    
    static String formatCommand(CommandSender sender, String str, String[] args) {
       if(str == null)

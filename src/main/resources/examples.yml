@@ -61,22 +61,25 @@ placeholder:
     1: name
 
 # command conditions
-evaluate:
+re-op:
   commands:
-    - '<!condition> <arg1>'
-    - '<!msg>&atrue'
-    - '<!condition> <arg1> != true' # multiple lines of conditions
-    - '<!condition> <arg1> != yes'  # mean that both have to be true
-    - '<!msg>&cfalse'               # for the line after to be run
-  aliases: eval
-  args:
-    1: []
+    - '<!condition> <player> == AdminName || <player> == Admin2' # multiple lines of conditions
+    - '<!condition> <player.isOp> == false'                      # mean that all of them have to be
+    - 'op <player>'                                              # true for the line after to be run
 
 # Macro Strings
 macro:
   message: '\$(<arg1..>): "&e$(<arg1..>)&r"'
   args: []
   no-tab: none
+
+# Macro String's ternary
+evaluate:
+  commands:
+    - '<!msg>$(<arg1> ? &atrue : &cfalse)'
+  aliases: eval
+  args:
+    1: []
 
 # just a utility
 yield:

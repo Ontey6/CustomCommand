@@ -1,0 +1,7 @@
+# What type the tab uses
+# blacklist: remove the given commands from tab
+# whitelist: only show given commands from tab
+type: blacklist
+
+# the list to remove / set as command tab
+tab: []

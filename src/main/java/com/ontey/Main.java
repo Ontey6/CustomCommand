@@ -3,7 +3,8 @@ package com.ontey;
 import com.ontey.commands.MainCommand;
 import com.ontey.files.Commands;
 import com.ontey.files.Config;
-import com.ontey.listeners.TabRemove;
+import com.ontey.files.TabRemoval;
+import com.ontey.listeners.TabRemovalListener;
 import com.ontey.log.Log;
 import com.ontey.updater.Updater;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -28,6 +29,7 @@ public class Main extends JavaPlugin {
       loadPluginCommand();
       Startup.loadCommands();
       loadListeners();
+      TabRemoval.load();
       
       if(getServer().getPluginManager().isPluginEnabled("PlaceholderAPI"))
          papi = true;
@@ -44,7 +46,7 @@ public class Main extends JavaPlugin {
    }
    
    private void loadListeners() {
-      getServer().getPluginManager().registerEvents(new TabRemove(), this);
+      getServer().getPluginManager().registerEvents(new TabRemovalListener(), this);
    }
    
    public static void disablePlugin() {

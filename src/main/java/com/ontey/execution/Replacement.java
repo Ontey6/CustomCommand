@@ -1,10 +1,10 @@
 package com.ontey.execution;
 
-import com.ontey.files.Config;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.List;
+import static com.ontey.files.Config.ph;
 
 public class Replacement {
    public static String replaceArgs(@NotNull String str, String[] args) {
@@ -18,12 +18,12 @@ public class Replacement {
    
    private static String replaceArg(String str, List<String> list, int i, String[] args) {
       str = str
-        .replace(Config.ph("arg" + i), args[i - 1])
-        .replace(Config.ph("arg" + i + ".."), join(list, i, args.length))
-        .replace(Config.ph("arg.." + i), join(list, 1, i));
+        .replace(ph("arg" + i), args[i - 1])
+        .replace(ph("arg" + i + ".."), join(list, i, args.length))
+        .replace(ph("arg.." + i), join(list, 1, i));
       
       for(int j = i; j <= args.length; j++)
-         str = str.replace(Config.ph("arg" + i + ".." + j), join(list, i, j));
+         str = str.replace(ph("arg" + i + ".." + j), join(list, i, j));
       
       return str;
    }
