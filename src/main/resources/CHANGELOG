@@ -1,4 +1,4 @@
-version 0.3
+version 0.4
 
 Also allow files with the file ending '.yaml' instead of just '.yml'
 
@@ -15,3 +15,5 @@ added Macro Strings that make life easier.
 made placeholders escapable with a backslash
 
 added customizable placeholder names
+
+added placeholder support for range

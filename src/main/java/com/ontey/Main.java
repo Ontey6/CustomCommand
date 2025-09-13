@@ -15,7 +15,7 @@ public class Main extends JavaPlugin {
    
    public static boolean papi = false;
    
-   public static String version = "0.3";
+   public static String version = "0.4";
    
    @Override
    public void onEnable() {
