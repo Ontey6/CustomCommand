@@ -23,14 +23,27 @@ public class MainCommand implements TabExecutor {
                Reload.reload(sender);
             break;
          }
+         case 2: {
+            if(args[0].equals("reload")) {
+               if(args[1].equals("all"))
+                  Reload.reload(sender);
+               if(args[1].equals("commands"))
+                  Reload.reloadCommands(sender);
+               if(args[1].equals("config"))
+                  Reload.reloadConfig(sender);
+            }
+            break;
+         }
          default: sender.sendMessage("§cUnrecognized Sub-Command");
       }
       return true;
    }
    
    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String [] args) {
-      if(args.length == 1)
-         return List.of("reload");
-      return List.of();
+      return switch(args.length) {
+         case 1 -> List.of("reload");
+         case 2 -> List.of("all", "commands", "config");
+         default -> List.of();
+      };
    }
 }

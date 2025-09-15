@@ -2,6 +2,7 @@ package com.ontey.listeners;
 
 import com.ontey.files.Config;
 import com.ontey.files.TabRemoval;
+import com.ontey.reload.Reload;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerCommandSendEvent;
@@ -29,9 +30,9 @@ public class TabRemovalListener implements Listener {
    
    private void handleTabRemoval() {
       if(TabRemoval.getType() == TabRemoval.TabRemovalType.BLACKLIST)
-         setTabRemovalWhitelist();
-      if(TabRemoval.getType() == TabRemoval.TabRemovalType.WHITELIST)
          removeTabRemovalBlacklist();
+      if(TabRemoval.getType() == TabRemoval.TabRemovalType.WHITELIST)
+         setTabRemovalWhitelist();
    }
    
    // Helpers
@@ -44,12 +45,12 @@ public class TabRemovalListener implements Listener {
       commands.removeIf(cmd -> cmd.contains(":"));
    }
    
-   private void removeTabRemovalBlacklist() {
+   private void setTabRemovalWhitelist() {
       commands.clear();
       commands.addAll(TabRemoval.getTab());
    }
    
-   private void setTabRemovalWhitelist() {
+   private void removeTabRemovalBlacklist() {
       commands.removeAll(TabRemoval.getTab());
    }
 }

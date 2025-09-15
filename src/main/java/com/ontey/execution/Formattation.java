@@ -49,6 +49,12 @@ public class Formattation {
       return MacroStrings.replaceMacroStrings(str, sender, args);
    }
    
+   static String replacePAPI(CommandSender sender, String str) {
+      if(Main.papi && sender instanceof final Player player)
+         return PlaceholderAPI.setPlaceholders(player, str);
+      return str;
+   }
+   
    static String translateColorCodes(String str) {
       if(str == null)
          return null;
@@ -61,11 +67,5 @@ public class Formattation {
       return str
         .replaceAll("(?<!&)&([0-9a-fk-or])", "")
         .replaceAll("&&([0-9a-fk-or])", "&$1");
-   }
-   
-   static String replacePAPI(CommandSender sender, String str) {
-      if(Main.papi && sender instanceof final Player player)
-         return PlaceholderAPI.setPlaceholders(player, str);
-      return str;
    }
 }

@@ -16,15 +16,20 @@ public class Reload {
          Config.config.load(Config.file);
          Config.loadConstants();
       } catch(Exception e) {
-         sender.sendMessage("§Couldn't reload the config. Using old configuration");
+         sendOp(sender, "§cCouldn't reload the config. Using old configuration");
          return;
       }
-      sender.sendMessage("§aReloaded the config");
+      sendOp(sender, "§aReloaded the config");
    }
    
    public static void reloadCommands(CommandSender sender) {
       for(CustomCommand cmd : Commands.registeredCommands)
          cmd.loadMutable(true);
-      sender.sendMessage("§aReloaded the Commands");
+      sendOp(sender, "§aReloaded the Commands");
+   }
+   
+   private static void sendOp(CommandSender sender, String msg) {
+      if(sender.isOp())
+         sender.sendMessage(msg);
    }
 }

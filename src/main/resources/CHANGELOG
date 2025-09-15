@@ -17,3 +17,5 @@ made placeholders escapable with a backslash
 added customizable placeholder names
 
 added placeholder support for range
+
+added individual reloading of features

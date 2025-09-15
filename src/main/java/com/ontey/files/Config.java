@@ -130,6 +130,7 @@ public class Config {
    public static String ph(String str) {
       if(!isString("placeholder-names." + str))
          return PLACEHOLDER_FORMAT.replace("%ph", str);
+      //noinspection DataFlowIssue
       return PLACEHOLDER_FORMAT.replace("%ph", getString("placeholder-names." + str));
    }
    
