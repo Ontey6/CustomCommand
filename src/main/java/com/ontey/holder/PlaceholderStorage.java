@@ -13,9 +13,23 @@ import java.util.List;
 
 import static com.ontey.holder.Placeholders.*;
 
-class PlaceholderStorage {
+public class PlaceholderStorage {
    
-   static List<Placeholder> getPlayerPlaceholders(Player p) {
+   private final List<Placeholder> additions = new ArrayList<>();
+   
+   public String apply(String str, CommandSender sender) {
+      for(Placeholder ph : getPlaceholders(sender))
+         str = ph.apply(str);
+      return str;
+   }
+   
+   public List<Placeholder> getPlaceholders(CommandSender sender) {
+      return sender instanceof Player p
+        ? getPlayerPlaceholders(p)
+        : getConsolePlaceholders(sender);
+   }
+   
+   public List<Placeholder> getPlayerPlaceholders(Player p) {
       List<Placeholder> out = new ArrayList<>();
       out.add(ph("player.isOp", p.isOp()));
       out.add(ph("player.isSleeping", p.isSleeping()));
@@ -76,7 +90,7 @@ class PlaceholderStorage {
       return out;
    }
    
-   static List<Placeholder> getConsolePlaceholders(CommandSender sender) {
+   public List<Placeholder> getConsolePlaceholders(CommandSender sender) {
       List<Placeholder> out = new ArrayList<>();
       out.add(ph("player.isOp", "true"));
       out.add(ph("sender.isPlayer", "false"));
@@ -87,7 +101,7 @@ class PlaceholderStorage {
       return out;
    }
    
-   static void addCommonPlaceholders(List<Placeholder> out, CommandSender sender) {
+   private void addCommonPlaceholders(List<Placeholder> out, CommandSender sender) {
       out.add(ph("space", " "));
       out.add(ph("backslash", "\\"));
       
@@ -98,5 +112,11 @@ class PlaceholderStorage {
       out.add(ph("server", sender.getServer().getName()));
       out.add(ph("players-online-count", Bukkit.getOnlinePlayers().size()));
       out.add(ph("players-online", onlinePlayers(", ")));
+      
+      out.addAll(additions);
+   }
+   
+   public void add(List<Placeholder> addition) {
+      additions.addAll(addition);
    }
 }

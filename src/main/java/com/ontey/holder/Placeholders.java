@@ -1,26 +1,11 @@
 package com.ontey.holder;
 
 import org.bukkit.Bukkit;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.function.Supplier;
 
 public class Placeholders {
-   
-   // get
-   
-   public static String apply(CommandSender sender, String str) {
-      if (sender instanceof final Player p) {
-         for(Placeholder ph : PlaceholderStorage.getPlayerPlaceholders(p))
-            str = ph.apply(str);
-         return str;
-      }
-      
-      for(Placeholder ph : PlaceholderStorage.getConsolePlaceholders(sender))
-         str = ph.apply(str);
-      return str;
-   }
    
    static Object safe(Supplier<Double> getter) {
       try {

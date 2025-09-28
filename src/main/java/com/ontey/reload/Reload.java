@@ -1,7 +1,6 @@
 package com.ontey.reload;
 
 import com.ontey.CustomCommand;
-import com.ontey.files.Commands;
 import com.ontey.files.Config;
 import org.bukkit.command.CommandSender;
 
@@ -23,8 +22,8 @@ public class Reload {
    }
    
    public static void reloadCommands(CommandSender sender) {
-      for(CustomCommand cmd : Commands.registeredCommands)
-         cmd.loadMutable(true);
+      for(CustomCommand cmd : CustomCommand.registeredCommands)
+         cmd.load(true);
       sendOp(sender, "§aReloaded the Commands");
    }
    

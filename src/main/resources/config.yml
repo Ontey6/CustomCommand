@@ -1,5 +1,5 @@
 #------------------------------#
-#       Config File v0.3       #
+#       Config File v0.5       #
 #------------------------------#
 
 format:
@@ -8,7 +8,11 @@ format:
   # The placeholder format: < ph >
   placeholder-format: '<%ph>'
   # the action-holder format: < ! ah >
+  # unused v0.5
   actionholder-format: '<!%ah>'
+  # Whether to send the argument suggestions
+  # when passing an unallowed argument
+  send-args-suggestions: true
 
 dev:
   # Immediately updates commands when there are changes
@@ -37,6 +41,9 @@ boolean-true:
   - 'true'
   - 'yes' # papi default
 
+# Whether to use the updater
+updater: true
+
 # Removes the &<c> colors. doesn't apply to §<c>
 # Some consoles don't support colors and will take outputs literally
 remove-colors-in-console: false
@@ -44,25 +51,39 @@ remove-colors-in-console: false
 # only change this if some name triggers you, or you want shorter / more detailed names
 # changing this will result in examples.yml not working correctly anymore
 paths:
+  # Reloadable (only with /ccmd reload)
+  tab: '%cmd.tab'
+  no-tab: '%cmd.no-tab'
+
+  # Reloadable and Hotswappable
   message: '%cmd.message'
   broadcast: '%cmd.broadcast'
   commands: '%cmd.commands'
+  args: '%cmd.args'
+  command: '%cmd.command'
+  condition: '%cmd.condition'
 
   advanced-broadcast: '%cmd.broadcast' # placeholder: %abc The advanced broadcast path (only the fields right below support it)
   advanced-broadcast-range: '%abc.range'
   advanced-broadcast-permission: '%abc.permission'
   advanced-broadcast-condition: '%abc.condition'
   advanced-broadcast-broadcast: '%abc.broadcast'
+  advanced-broadcast-include-console: '%abc.include-console'
+  advanced-broadcast-include-sender: '%abc.include-sender'
 
+  url-call: '%cmd.url-call' # placeholder: %url The url-call path (only the fields right below support it)
+  url-call-url: '%url.url'
+  url-call-user-agent: '%url.user-agent'
+  url-call-json-path: '%url.json-path'
+  url-call-after: '%url.after'
+
+  # Not reloadable
   aliases: '%cmd.aliases'
   description: '%cmd.description'
   usage: '%cmd.usage'
   permission: '%cmd.permission'
   permission-required: '%cmd.permission-required'
-  args: '%cmd.args'
-  tab: '%cmd.tab'
   namespace: '%cmd.namespace'
-  no-tab: '%cmd.no-tab'
 
 placeholder-names:
   # Format: default-name: new-name
@@ -71,3 +92,11 @@ placeholder-names:
 
 actionholder-names:
   # same as placeholder names
+
+language:
+  command-condition-error: '&cCondition is not fulfilled, not running command'
+
+  args-length-error: '&cInvalid amount of arguments: &e%length&c. Should be &e%required'
+  typed-arg-error: '&cArgument %arg should be of type &e%type&c but is not!'
+  listed-arg-error: '&cArg &e%arg&c is invalid. Valid args:'
+  listed-args-suggestion-line: '- &e%suggestion'

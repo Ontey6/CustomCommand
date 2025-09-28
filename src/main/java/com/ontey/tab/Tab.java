@@ -1,59 +1,92 @@
 package com.ontey.tab;
 
-import com.ontey.files.Commands;
+import com.ontey.CustomCommand;
+import com.ontey.execution.Formattation;
+import com.ontey.files.Files;
 import com.ontey.holder.Paths;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.ontey.files.Config.ph;
 
 public class Tab {
    
-   private final YamlConfiguration config;
+   private final CustomCommand cmd;
    
-   private final String command;
+   private final YamlConfiguration config;
    
    private final String path;
    
-   public Tab(YamlConfiguration config, String command) {
-      this.config = config;
-      this.command = command;
-      this.path = Paths.tab(command);
+   public Tab(CustomCommand cmd) {
+      this.cmd = cmd;
+      this.config = cmd.config;
+      this.path = Paths.tab(cmd.name);
    }
    
-   public int length() {
-      int i = 1;
-      ConfigurationSection section = config.getConfigurationSection(path);
-      if (section == null)
-         return 0;
-      
-      while (section.isList(str(i)) || section.isString(str(i)))
-         i++;
-      return i - 1;
-   }
-   
-   private List<List<String>> rawTabCompleter() {
-      List<List<String>> out = new ArrayList<>();
+   private Map<Integer, List<String>> rawTabCompleter() {
+      Map<Integer, List<String>> out = new HashMap<>();
       ConfigurationSection section = config.getConfigurationSection(path);
       if (section == null)
          return out;
       
-      int i = 1;
-      while (section.isList(str(i)) || section.isString(str(i))) {
-         List<String> options = Commands.getField(config, path + "." + str(i));
-         out.add(options);
-         i++;
-      }
+      Set<String> keys = section.getKeys(false);
+      keys.removeIf(key -> !key.matches("\\d+"));
+      
+      AtomicInteger i = new AtomicInteger();
+      keys.forEach(key ->
+        out.put(Integer.parseInt(key), evalEscapes(key, section, (i.getAndIncrement())))
+      );
+      
       return out;
    }
    
    public List<String> getTabCompleter(String[] args) {
-      if(args.length > length() || rawTabCompleter().get(args.length - 1).isEmpty())
-         return Commands.getNoTab(config, command);
-      return rawTabCompleter().get(args.length - 1);
+      if(config.getString(path, "").equals("args"))
+         return dynamic(args.length <= cmd.args.getRaw().size()
+           ? cmd.args.getRaw().get(args.length - 1)
+           : cmd.getNoTab()
+           , args
+         );
+      
+      Map<Integer, List<String>> rawTab = rawTabCompleter();
+      if(!rawTab.containsKey(args.length))
+         return cmd.getNoTab();
+      
+      return dynamic(rawTab.get(args.length), args);
+   }
+   
+   public List<String> dynamic(List<String> available, String[] args) {
+      List<String> list = new ArrayList<>(available);
+      list.removeIf(
+        str ->
+          !str.startsWith(ph("static"))
+            && !str.toLowerCase().startsWith(args[args.length - 1].toLowerCase())
+      );
+      Formattation.modify(list, this::evalStatic);
+      
+      return list;
+   }
+   
+   private List<String> evalEscapes(String key, ConfigurationSection section, int i) {
+      String str = section.getString(key, "");
+      if(str.equals("players"))
+         return onlinePlayers();
+      if(str.equals("args"))
+         return cmd.args.getRaw().get(i);
+      return Files.getField(section, key);
+   }
+   
+   private String evalStatic(String str) {
+      return str.startsWith(ph("static"))
+        ? str.substring(ph("static").length())
+        : str.startsWith("\\" + ph("static"))
+        ? str.substring(1)
+        : str;
    }
    
    private static String str(Object obj) {

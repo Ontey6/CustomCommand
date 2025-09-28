@@ -14,7 +14,7 @@ public class Placeholder {
    
    // Constructor
    
-   Placeholder(String placeholder, String replacement) {
+   public Placeholder(String placeholder, String replacement) {
       this.placeholder = placeholder;
       this.replacement = replacement;
    }

@@ -30,15 +30,13 @@ ping-all:
     - '&d---------------------'
 
 # advanced broadcast
-advanced-broadcast:
+msg-near:
   broadcast:
-    range: 10 # range from the player
-    permission: ccmd.struct.bc
+    range: 10 # range from the player. replaces placeholders
+    permission: ccmd.msg-near
     condition: '<player.isOp>' # placeholders are ran as the player who received broadcast
     broadcast:
-      - 'Hello from &e<player>&r!'
-    aliases:
-      - abc
+      - 'Hello from &e<player>&/e!'
 
 # arguments
 get:
@@ -46,7 +44,7 @@ get:
   #args: [] # this would allow any amount of args that each have no restrictions
   args: # The args the player HAS TO specify
     # empty list ('[]') allows any argument at that position
-    1: [] # player
+    1: player # player
     2: [] # item
     3: int # count
 
@@ -58,13 +56,13 @@ placeholder:
   args:
     1: []
   tab:
-    1: name
+    1: '<static>name'
 
 # command conditions
 re-op:
   commands:
-    - '<!condition> <player> == AdminName || <player> == Admin2' # multiple lines of conditions
-    - '<!condition> <player.isOp> == false'                      # mean that all of them have to be
+    - '<condition> <player> == AdminName || <player> == Admin2' # multiple lines of conditions
+    - '<condition> <player.isOp> == false'                      # mean that all of them have to be
     - 'op <player>'                                              # true for the line after to be run
 
 # Macro Strings
@@ -73,10 +71,24 @@ macro:
   args: []
   no-tab: none
 
+# Macro Strings math
+# More tab completer
+calculate:
+  message: '$(<arg1..3>)' # same as: <arg1> <arg2> <arg3>
+  args:
+    1: int
+    2: ['+', '-', '*', '/', '^', '%']
+    3: int
+  tab:
+    1: '<static><number>'
+    2: ['+', '-', '*', '/', '^', '%']
+    2: '<static><number>'
+  no-tab: none
+  aliases: calc
+
 # Macro String's ternary
 evaluate:
-  commands:
-    - '<!msg>$(<arg1> ? &atrue : &cfalse)'
+  message: '&7[&eeval&7]&r $(<arg1> ? &atrue : &cfalse)'
   aliases: eval
   args:
     1: []
@@ -86,3 +98,15 @@ yield:
   message: '<arg1..>'
   args: []
   no-tab: none # none, players or any field
+
+# Url Calls
+ccmd-latest:
+  url-call:
+    version:
+      url: 'https://api.spiget.org/v2/resources/128478/versions/latest'
+      json-path: 'name'
+      after:
+        message:
+          - 'The latest version is &e<result>!'
+          - 'You are curently running &e<plugin.version>'
+          - '$(<result> == <plugin.version> ? &aYou''re running the latest version : &cYou''re not running the latest version!)'

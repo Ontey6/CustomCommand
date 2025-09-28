@@ -54,6 +54,22 @@ public class Paths {
       return replaced(NO_TAB, command);
    }
    
+   public static String command(String command) {
+      return replaced(COMMAND, command);
+   }
+   
+   public static String conditions(String command) {
+      return replaced(CONDITIONS, command);
+   }
+   
+   public static String urlCall(String command) {
+      return replaced(URL_CALL, command);
+   }
+   
+   public static String conditionErrorMessage(String command) {
+      return replaced(CONDITION_ERROR_MESSAGE, command);
+   }
+   
    // Constants
    
    private static String MESSAGE;
@@ -68,6 +84,10 @@ public class Paths {
    private static String COMMANDS;
    private static String NAMESPACE;
    private static String NO_TAB;
+   private static String COMMAND;
+   private static String CONDITIONS;
+   private static String URL_CALL;
+   private static String CONDITION_ERROR_MESSAGE;
    
    // Load
    
@@ -84,8 +104,13 @@ public class Paths {
       COMMANDS = getOrDefault("paths.commands", "%cmd.commands");
       NAMESPACE = getOrDefault("paths.namespace", "%cmd.namespace");
       NO_TAB = getOrDefault("paths.no-tab", "%cmd.no-tab");
+      COMMAND = getOrDefault("paths.command", "%cmd.command");
+      CONDITIONS = getOrDefault("paths.condition", "%cmd.condition");
+      URL_CALL = getOrDefault("paths.url-call", "%cmd.url-call");
+      CONDITION_ERROR_MESSAGE = getOrDefault("paths.condition-error", "%cmd.condition-error");
       
       AdvancedBroadcast.load();
+      UrlCall.load();
    }
    
    // Advanced Broadcast
@@ -113,6 +138,14 @@ public class Paths {
          return replaced(BROADCAST, command);
       }
       
+      public static String includeConsole(String command) {
+         return replaced(INCLUDE_CONSOLE, command);
+      }
+      
+      public static String includeSender(String command) {
+         return replaced(INCLUDE_SENDER, command);
+      }
+      
       // Constants
       
       private static String ADVANCED_BROADCAST;
@@ -120,6 +153,8 @@ public class Paths {
       private static String PERMISSION;
       private static String CONDITION;
       private static String BROADCAST;
+      private static String INCLUDE_CONSOLE;
+      private static String INCLUDE_SENDER;
       
       // Load Advanced Broadcast
       
@@ -129,12 +164,54 @@ public class Paths {
          PERMISSION = getOrDefault("paths.advanced-broadcast-permission", "%abc.permission");
          CONDITION = getOrDefault("paths.advanced-broadcast-condition", "%abc.condition");
          BROADCAST = getOrDefault("paths.advanced-broadcast-broadcast", "%abc.broadcast");
+         INCLUDE_CONSOLE = getOrDefault("paths.advanced-broadcast-include-console", "%abc.include-console");
+         INCLUDE_SENDER = getOrDefault("paths.advanced-broadcast-include-sender", "%abc.include-sender");
       }
       
       // Helper
       
       private static String replaced(String str, String command) {
          return str.replace("%abc", section(command)).replace("%cmd", command);
+      }
+   }
+   
+   public static class UrlCall {
+      public static String section(String command, String name) {
+         return Paths.replaced(URL_CALL + "." + name, command);
+      }
+      
+      public static String url(String command, String name) {
+         return replaced(URL, command, name);
+      }
+      
+      public static String userAgent(String command, String name) {
+         return replaced(USER_AGENT, command, name);
+      }
+      
+      public static String jsonPath(String command, String name) {
+         return replaced(JSON_PATH, command, name);
+      }
+      
+      public static String after(String command, String name) {
+         return replaced(AFTER, command, name);
+      }
+      
+      private static String URL_CALL;
+      private static String URL;
+      private static String USER_AGENT;
+      private static String JSON_PATH;
+      private static String AFTER;
+      
+      private static void load() {
+         URL_CALL = getOrDefault("paths.url-call", "%cmd.url-call");
+         URL = getOrDefault("paths.url-call-url", "%url.url");
+         USER_AGENT = getOrDefault("paths.url-call-user-agent", "%url.user-agent");
+         JSON_PATH = getOrDefault("paths.url-call-json-path", "%url.json-path");
+         AFTER = getOrDefault("paths.url-call-after", "%url.after");
+      }
+      
+      private static String replaced(String str, String command, String name) {
+         return Paths.replaced(str.replace("%url", section(command, name)), command);
       }
    }
    

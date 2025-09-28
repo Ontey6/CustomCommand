@@ -1,7 +1,7 @@
 name: CustomCommand
-version: '0.4'
+version: '0.5'
 main: com.ontey.Main
-api-version: '1.20.5'
+api-version: '1.21'
 authors: [ Ontey ]
 description: Easily create custom commands
 
@@ -10,6 +10,6 @@ softdepend: [PlaceholderAPI]
 commands:
   customcommands:
     description: "The main command for the CustomCommand Plugin"
-    usage: /<command> reload
+    usage: /<command> wiki|reload [all, commands, config]
     permission: customcommands.cmd.customcommand
     aliases: [ccmd]

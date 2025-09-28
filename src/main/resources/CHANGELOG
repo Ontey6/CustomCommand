@@ -1,21 +1,49 @@
-version 0.4
+# version 0.5
 
-Also allow files with the file ending '.yaml' instead of just '.yml'
+added command field on commands to set the name of the command
 
-reworked Actionholders code and added: reload-config, reload-commands, reload-command ("<!reload-command>command-name")
+made advanced broadcast replace args properly
 
-Added support for placeholders and Strings in general in abc range
+fixed usage and description
 
-made abc permission a Field
+added preconditions (command conditions) and corresponding error messages
 
-removed wrongfully allowed access to actionholders in messages
+added Url-Calls
 
-added Macro Strings that make life easier.
+made macro Strings properly remove colon in front of the false output
 
-made placeholders escapable with a backslash
+no replace placeholder mow also works in messages
 
-added customizable placeholder names
+changed placeholder no replace to no-replace and actionholder send to to send-to
 
-added placeholder support for range
+added ! (not) operator to conditions
 
-added individual reloading of features
+temporarily removed actionholders because they were causing problems
+
+made tab completer better by only showing tab results that start with the user input
+also added static placeholder in tab to make them stay no matter what
+and finally added the ability to make it players to make a list of all online players appear
+
+made conditions placeholders instead of actionholder
+
+actionholder-format is now unused
+
+added mini-message, &# and <r,g,b> format support for messages
+
+added boolean type to args
+
+added signature 'any' to String args type
+
+# Changes after using the plugin myself:
+
+added player, server-player and offline-player type to args
+
+added ability to disable updater
+
+added placeholders: label, usage, description, permission, name, command and condition-error
+
+added Argument Tab
+
+dropped spigot support
+
+added color ends like in mini-message: &/e, &/#hex, </0,0,0>

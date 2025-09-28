@@ -1,36 +1,49 @@
 package com.ontey.execution;
 
 import com.ontey.files.Config;
-import org.bukkit.command.CommandSender;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Evaluation {
+public class ConditionParser {
    
-   public static boolean evalConditions(List<String> conditions, CommandSender sender, String[] args) {
+   public static boolean evalCommandConditions(Execution exe) {
+      if(!ConditionParser.evalConditions(exe.cmd.conditions, exe)) {
+         sendConditionErrorMessage(exe);
+         return false;
+      }
+      return true;
+   }
+   
+   private static void sendConditionErrorMessage(Execution exe) {
+      if(exe.cmd.conditionErrorMessage.isEmpty())
+         return;
+      Execution.sendMessages(exe.cmd.conditionErrorMessage, exe.sender);
+   }
+   
+   public static boolean evalConditions(List<String> conditions, Execution exe) {
       if (conditions.isEmpty())
          return true;
       for(String str : conditions)
-         if(!evalCondition(str, sender, args))
+         if(!evalCondition(str, exe))
             return false;
       return true;
    }
    
-   public static boolean evalCondition(String str, CommandSender sender, String[] args) {
+   public static boolean evalCondition(String str, Execution exe) {
       if(str == null || str.isBlank())
          return true;
       
       str = str.replace(" ", "");
-      str = Replacement.replaceArgs(str, args);
-      str = Formattation.replacePlaceholders(sender, str, args);
+      str = Replacement.replaceArgs(str, exe.args);
+      str = Formattation.formattedMessage(str, exe);
       
       List<String> parts = splitOrParts(str);
       if(parts.size() > 1) {
          for(String part : parts)
-            if(evalCondition(part, sender, args))
+            if(evalCondition(part, exe))
                return true;
          return false;
       }
@@ -72,7 +85,15 @@ public class Evaluation {
             return findAndCompare(expr, idx, op);
          }
       }
-      return Config.isTrue(expr.toLowerCase());
+      return resolveInverted(expr.toLowerCase());
+   }
+   
+   private static boolean resolveInverted(String expr) {
+      if(expr.startsWith("\\!"))
+         return Config.isTrue(expr.substring(1));
+      if(expr.startsWith("!"))
+         return !Config.isTrue(expr.substring(1));
+      return Config.isTrue(expr);
    }
    
    private static boolean findAndCompare(String expr, int idx, String op) {
@@ -110,20 +131,21 @@ public class Evaluation {
       };
    }
    
-   static List<String> resolveConditions(CommandSender sender, String[] args, List<String> commands) {
+   static List<String> resolveConditions(List<String> commands, Execution exe) {
       if(commands.isEmpty())
          return commands;
+      String prefix = Config.ph("condition");
       
       for(int i = 0; i < commands.size(); i++) {
          String line = commands.get(i);
          
-         if(line.startsWith(Config.ah("condition"))) {
+         if(line.startsWith(prefix)) {
             int start = i;
             boolean allTrue = true;
             
-            while(i < commands.size() && commands.get(i).startsWith(Config.ah("condition"))) {
-               String condLine = commands.get(i).substring(Config.ah("condition").length());
-               boolean result = evalCondition(condLine, sender, args);
+            while(i < commands.size() && commands.get(i).startsWith(prefix)) {
+               String condLine = commands.get(i).substring(prefix.length());
+               boolean result = evalCondition(condLine, exe);
                
                commands.remove(i);
                if(!result)
@@ -137,7 +159,7 @@ public class Evaluation {
             continue;
          }
          
-         if(line.startsWith("\\" + Config.ah("condition")))
+         if(line.startsWith("\\" + prefix))
             commands.set(i, line.substring(1));
       }
       return commands;

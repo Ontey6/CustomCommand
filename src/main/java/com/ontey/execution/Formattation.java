@@ -1,71 +1,181 @@
 package com.ontey.execution;
 
+import com.ontey.CustomCommand;
 import com.ontey.Main;
 import com.ontey.files.Config;
-import com.ontey.holder.ActionHolders;
-import com.ontey.holder.Placeholders;
+import com.ontey.holder.PlaceholderStorage;
 import me.clip.placeholderapi.PlaceholderAPI;
+import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
 
-import static com.ontey.execution.Evaluation.str;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static com.ontey.execution.ConditionParser.str; // idk why this is not in here...
 
 public class Formattation {
    
-   static String formatCommand(CommandSender sender, String str, String[] args) {
-      if(str == null)
-         return "";
-      if(str.startsWith(Config.ph("no replace")))
-         return str.substring(Config.ph("no replace").length());
-      str = ActionHolders.apply(sender, str, args);
-      str = replacePlaceholders(sender, str, args);
-      return translateColorCodes(str);
+   public Execution exe;
+   
+   public CustomCommand cmd;
+   public PlaceholderStorage storage;
+   public CommandSender sender;
+   public String label;
+   public String[] args;
+   
+   public Formattation(Execution exe) {
+      this.exe = exe;
+      
+      this.cmd = exe.cmd;
+      this.storage = cmd.storage;
+      this.sender = exe.sender;
+      this.label = exe.label;
+      this.args = exe.args;
    }
    
-   public static String formatMessage(String message, CommandSender sender, String[] args) {
-      if(message == null)
+   public void formatCommand() {
+      formatCommands(cmd.commands);
+      
+      formatMessages(cmd.messages);
+      formatMessages(cmd.broadcasts);
+      formatMessages(cmd.conditions);
+      formatMessages(cmd.conditionErrorMessage);
+   }
+   
+   public static String formattedMessage(String msg, Execution exe) {
+      return new Formattation(exe).formatMessage(msg);
+   }
+   
+   public void formatMessages(List<String> messages) {
+      modify(messages, this::formatMessage);
+   }
+   
+   public void formatCommands(List<String> commands) {
+      modify(commands, this::formatCommand);
+      ConditionParser.resolveConditions(commands, exe);
+      commands.removeIf(str -> str == null || str.isEmpty());
+   }
+   
+   private String formatCommand(String cmd) {
+      cmd = formatMessage(cmd);
+      
+      //return ActionHolders.apply(sender, cmd, label, args, storage);
+      return cmd;
+   }
+   
+   private String formatMessage(String msg) {
+      if(msg == null)
          return "";
       
-      String str =
-        sender instanceof ConsoleCommandSender && Config.REMOVE_COLORS_IN_CONSOLE
-          ? removeColorCodes(message)
-          : translateColorCodes(message);
+      if(msg.startsWith(Config.ph("no-replace")))
+         return msg.substring(Config.ph("no-replace").length());
       
-      if(str.startsWith(Config.ph("no replace")))
-         str = str.substring(Config.ph("no replace").length());
-      
-      str = replacePlaceholders(sender, str, args);
-      return str;
+      msg = Replacement.replaceArgs(msg, args);
+      msg = replacePlaceholders(msg);
+      msg = replaceCommandInfo(msg);
+      return msg;
    }
    
    // Helpers
    
-   static String replacePlaceholders(CommandSender sender, @NotNull String str, String[] args) {
-      str = replacePAPI(sender, str);
-      str = Placeholders.apply(sender, str);
-      str = str.replace(Config.ph("args-length"), str(args.length));
-      return MacroStrings.replaceMacroStrings(str, sender, args);
+   private String replaceCommandInfo(String str) {
+      str = str
+        .replace(Config.ph("label"), label)
+        .replace(Config.ph("usage"), str(cmd.usage))
+        .replace(Config.ph("description"), str(cmd.description))
+        .replace(Config.ph("permission"), str(cmd.permission))
+        .replace(Config.ph("name"), str(cmd.name))
+        .replace(Config.ph("command"), str(cmd.command))
+        .replace(Config.ph("condition-error"), str(cmd.conditionErrorMessage));
+      return str;
    }
    
-   static String replacePAPI(CommandSender sender, String str) {
+   private String replacePlaceholders(String str) {
+      str = replacePAPI(str);
+      str = str.replace(Config.ph("args-length"), str(args.length));
+      str = storage.apply(str, sender);
+      return new MacroStringParser(exe).replaceMacroStrings(str);
+   }
+   
+   private String replacePAPI(String str) {
       if(Main.papi && sender instanceof final Player player)
          return PlaceholderAPI.setPlaceholders(player, str);
       return str;
    }
    
-   static String translateColorCodes(String str) {
-      if(str == null)
-         return null;
-      return str
-        .replaceAll("(?<!&)&([0-9a-fk-or])", "§$1")
-        .replaceAll("&&([0-9a-fk-or])", "&$1");
+   // Helpers
+   
+   public static <T> void modify(List<T> list, Function<T, T> converter) {
+      List<T> out = new ArrayList<>(list.size());
+      
+      for (T t : list)
+         out.add(converter.apply(t));
+      
+      list.clear();
+      list.addAll(out);
    }
    
-   static String removeColorCodes(String str) {
+   public static Component replaceMM(String msg) {
+      return Main.mm.deserialize(replaceLegacy(msg));
+   }
+   
+   private static String replaceLegacy(String str) {
+      str = deserializeRgbToHex(str);
       return str
-        .replaceAll("(?<!&)&([0-9a-fk-or])", "")
-        .replaceAll("&&([0-9a-fk-or])", "&$1");
+        .replaceAll("§([0-9a-fk-or])", "&$1")
+        .replaceAll("(?<!&)&(/)?0", "<$1black>")
+        .replaceAll("(?<!&)&(/)?1", "<$1dark_blue>")
+        .replaceAll("(?<!&)&(/)?2", "<$1dark_green>")
+        .replaceAll("(?<!&)&(/)?3", "<$1dark_aqua>")
+        .replaceAll("(?<!&)&(/)?4", "<$1dark_red>")
+        .replaceAll("(?<!&)&(/)?5", "<$1dark_purple>")
+        .replaceAll("(?<!&)&(/)?6", "<$1gold>")
+        .replaceAll("(?<!&)&(/)?7", "<$1gray>")
+        .replaceAll("(?<!&)&(/)?8", "<$1dark_gray>")
+        .replaceAll("(?<!&)&(/)?9", "<$1blue>")
+        .replaceAll("(?<!&)&(/)?a", "<$1green>")
+        .replaceAll("(?<!&)&(/)?b", "<$1aqua>")
+        .replaceAll("(?<!&)&(/)?c", "<$1red>")
+        .replaceAll("(?<!&)&(/)?d", "<$1light_purple>")
+        .replaceAll("(?<!&)&(/)?e", "<$1yellow>")
+        .replaceAll("(?<!&)&(/)?f", "<$1white>")
+        .replaceAll("(?<!&)&(/)?k", "<$1obfuscated>")
+        .replaceAll("(?<!&)&(/)?l", "<$1bold>")
+        .replaceAll("(?<!&)&(/)?m", "<$1strikethrough>")
+        .replaceAll("(?<!&)&(/)?n", "<$1underlined>")
+        .replaceAll("(?<!&)&(/)?o", "<$1italic>")
+        .replaceAll("(?<!&)&(/)?r", "<$1reset>")
+        .replaceAll("&&([0-9a-fk-or])", "&$1")
+        .replaceAll("&/&([0-9a-fk-or])", "&/$1")
+        .replaceAll("(?<!&)&(/)?#([A-Fa-f0-9]{6})", "<$1#$2>")
+        .replaceAll("(?<!§)§(/)?#([A-Fa-f0-9]{6})", "<$1#$2>");
+   }
+   
+   private static String deserializeRgbToHex(String str) {
+      Pattern p = Pattern.compile("(?<!\\\\)<(/)?(\\d{1,3})[-,](\\d{1,3})[-,](\\d{1,3})>");
+      Matcher m = p.matcher(str);
+      StringBuilder sb = new StringBuilder();
+      
+      while (m.find()) {
+         int r = Integer.parseInt(m.group(2));
+         int g = Integer.parseInt(m.group(3));
+         int b = Integer.parseInt(m.group(4));
+         
+         if (r >= 0 && r <= 255 && g >= 0 && g <= 255 && b >= 0 && b <= 255) {
+            String hex = String.format("<$1#%02x%02x%02x>", r, g, b);
+            m.appendReplacement(sb, hex);
+            continue;
+         }
+         
+         // Out of bounds
+         m.appendReplacement(sb, Matcher.quoteReplacement(m.group()));
+      }
+      
+      m.appendTail(sb);
+      return sb.toString();
    }
 }

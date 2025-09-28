@@ -1,20 +1,23 @@
 package com.ontey.execution;
 
 import com.ontey.files.Config;
-import org.bukkit.command.CommandSender;
+import lombok.AllArgsConstructor;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class MacroStrings {
+@AllArgsConstructor
+public class MacroStringParser {
    
-   public static String replaceMacroStrings(String str, CommandSender sender, String[] args) {
+   public Execution exe;
+   
+   public String replaceMacroStrings(String str) {
       Pattern pattern = Pattern.compile("(?<!\\\\)\\$\\((.*?)(?<!\\\\)\\)");
       Matcher matcher = pattern.matcher(str);
       StringBuilder sb = new StringBuilder();
       
       while (matcher.find()) {
-         String rep = evalMacroStrings(matcher.group(1), sender, args);
+         String rep = evalMacroStrings(matcher.group(1));
          rep = rep == null ? "" : rep;
          rep = rep.replace("\\)", ")");
          matcher.appendReplacement(sb, Matcher.quoteReplacement(rep));
@@ -27,28 +30,28 @@ public class MacroStrings {
       return str.replaceAll("\\\\(\\$\\((.*?)\\))", "$1");
    }
    
-   private static String evalMacroStrings(String str, CommandSender sender, String[] args) {
+   private String evalMacroStrings(String str) {
       // num op num
       if(str.replace(" ", "").matches("[+-]?\\d+(\\.\\d+)?[*/%+^-][+-]?\\d+(\\.\\d+)?"))
          return evalCalculation(str.replace(" ", ""));
       if(str.matches("(.*?)\\?(.*?):(.*?)"))
-         return evalTernary(str, sender, args);
-      return "$(" + str + ")";
+         return evalTernary(str);
+      return ConditionParser.evalCondition(str, exe) + "";
    }
    
-   private static String evalTernary(String str, CommandSender sender, String[] args) {
+   private String evalTernary(String str) {
       int idx = str.indexOf('?');
       String condition = str.substring(0, idx);
       String _true = str.substring(idx + 1, str.indexOf(':', idx));
-      String _false = str.substring(str.indexOf(':', idx));
+      String _false = str.substring(str.indexOf(':', idx) + 1);
       
-      boolean result = Evaluation.evalCondition(condition, sender, args);
+      boolean result = ConditionParser.evalCondition(condition, exe);
       
       return result ? tnSpace(_true.trim()) : tnSpace(_false.trim());
    }
    
-   private static String evalCalculation(String str) {
-      int idx = index(str, "*/%+^-");
+   private String evalCalculation(String str) {
+      int idx = indexOfOp(str, "*/%+^-");
       if(idx == -1)
          return str;
       double left = Double.parseDouble(str.substring(0, idx));
@@ -58,11 +61,11 @@ public class MacroStrings {
       return trimDecimal(calculate(left, right, op));
    }
    
-   private static String tnSpace(String str) {
+   private String tnSpace(String str) {
       return str.replace(Config.ph("tn.space"), " ");
    }
    
-   private static double calculate(double left, double right, char op) {
+   private double calculate(double left, double right, char op) {
       return switch(op) {
          case '+' -> left + right;
          case '*' -> left * right;
@@ -74,7 +77,8 @@ public class MacroStrings {
       };
    }
    
-   private static int index(String str, String chars) {
+   // Should only be used for operators
+   private int indexOfOp(String str, String chars) {
       // char at 0 has to be a digit -> no op there
       for(int i = 1; i < str.length(); i++) {
          char c = str.charAt(i);
@@ -85,7 +89,7 @@ public class MacroStrings {
       return -1;
    }
    
-   private static String trimDecimal(double d) {
+   private String trimDecimal(double d) {
       String str = String.valueOf(d);
       if(str.endsWith(".0"))
          return str.substring(0, str.length() - 2);

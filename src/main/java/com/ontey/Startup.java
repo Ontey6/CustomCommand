@@ -1,7 +1,5 @@
 package com.ontey;
 
-import com.ontey.files.Commands;
-import com.ontey.files.Config;
 import com.ontey.log.Log;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandMap;
@@ -16,16 +14,16 @@ import java.util.List;
 public class Startup {
    
    public static void loadCommands() {
-      Commands.registeredCommands.addAll(getCommands());
+      CustomCommand.registeredCommands.addAll(getCommands());
       CommandMap commandMap = getCommandMap();
       
-      for (CustomCommand command : Commands.registeredCommands) {
+      for (CustomCommand command : CustomCommand.registeredCommands) {
          loadCommand(commandMap, command);
       }
    }
    
    private static void loadCommand(CommandMap commandMap, CustomCommand command) {
-      BukkitCommand cmd = new BukkitCommand(command.name) {
+      BukkitCommand cmd = new BukkitCommand(command.command) {
          @Override
          public boolean execute(@NotNull CommandSender sender, @NotNull String label, String[] args) {
             command.execute(sender, label, args);
@@ -39,11 +37,11 @@ public class Startup {
       };
       
       cmd.setAliases(command.aliases);
-      cmd.setDescription(Config.getOrDefault(command.description, Config.DEFAULT_DESCRIPTION));
-      cmd.setUsage(Config.getOrDefault(command.usage, Config.DEFAULT_USAGE));
-      cmd.setPermission(Commands.getPermission(command.config, command.name));
+      cmd.setDescription(command.description);
+      cmd.setUsage(command.usage);
+      cmd.setPermission(command.getPermission());
       
-      commandMap.register(Commands.getNamespace(command.config, command.name), cmd);
+      commandMap.register(command.namespace, cmd);
    }
    
    

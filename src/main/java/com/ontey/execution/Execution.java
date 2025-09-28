@@ -1,70 +1,87 @@
 package com.ontey.execution;
 
-import com.ontey.types.AdvancedBroadcast;
+import com.ontey.CustomCommand;
+import com.ontey.Main;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import java.util.List;
 
-import static com.ontey.execution.Evaluation.*;
-import static com.ontey.execution.Formattation.*;
-import static com.ontey.execution.Replacement.replaceArgs;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static com.ontey.execution.ConditionParser.*;
+import static com.ontey.execution.Formattation.replaceMM;
 
 public class Execution {
    
-   public static void sendMessages(List<String> messages, CommandSender sender, String[] args) {
-      if(messages.isEmpty())
-         return;
-      for(String msg : messages)
-         if(!msg.isEmpty())
-            sender.sendMessage(formatMessage(replaceArgs(msg, args), sender, args));
+   public CustomCommand cmd;
+   
+   public CommandSender sender;
+   public String label;
+   public String[] args;
+   
+   public Execution(CustomCommand cmd, CommandSender sender, String label, String[] args) {
+      this.cmd = cmd;
+      
+      this.sender = sender;
+      this.label = label;
+      this.args = args;
    }
    
-   public static void runCommands(List<String> commands, CommandSender sender, String[] args) {
-      resolveConditions(sender, args, commands);
-      if(commands.isEmpty())
-         return;
-      for(String cmd : commands) {
-         String formatted = formatCommand(sender, replaceArgs(cmd, args), args);
-         if(!formatted.isEmpty())
-            Bukkit.dispatchCommand(sender, formatted);
+   public void sendMessages() {
+      sendMessages(cmd.messages, sender);
+   }
+   
+   public void runCommands() {
+      for(String cmd : cmd.commands) {
+         //ActionHolders.apply(sender, cmd, label, args, this.cmd.storage);
+         if(cmd != null && !cmd.isEmpty())
+            Bukkit.dispatchCommand(sender, cmd);
       }
    }
    
-   public static void sendBroadcasts(List<String> broadcasts, CommandSender sender, String[] args) {
-      if(broadcasts.isEmpty())
-         return;
+   public void sendBroadcasts() {
       for(Player player : Bukkit.getOnlinePlayers())
-         for(String bc : broadcasts)
-            if(!bc.isEmpty())
-               player.sendMessage(formatMessage(replaceArgs(bc, args), sender, args));
+         sendMessages(cmd.broadcasts, player);
    }
    
-   public static void sendAdvancedBroadcast(AdvancedBroadcast advancedBroadcast, CommandSender sender, String[] args) {
-      if(advancedBroadcast == null)
+   public void sendAdvancedBroadcast() {
+      var abc = cmd.advancedBroadcast;
+      if(abc == null)
          return;
-      List<String> permission = advancedBroadcast.permission;
-      List<String> condition = advancedBroadcast.condition;
-      double range = advancedBroadcast.range(sender, args);
+      new Formattation(this).formatMessages(abc.broadcast);
+      List<String> permission = abc.permission;
+      List<String> condition = abc.condition;
+      double range = abc.range(this);
       Location senderLoc = (sender instanceof Player p) ? p.getLocation() : null;
       
-      for (Player player : Bukkit.getOnlinePlayers()) {
-         if (permission != null && !hasPermissions(player, permission))
+      for(Player player : Bukkit.getOnlinePlayers()) {
+         if(abc.includeConsole)
+            sendMessages(abc.broadcast, Bukkit.getConsoleSender());
+         if(!abc.includeSender && player.getName().equals(sender.getName()))
             continue;
-         if (!evalConditions(condition, sender, args))
+         if(permission != null && !hasPermissions(player, permission))
             continue;
-         if (range != -1 && senderLoc != null)
-            if (!player.getWorld().equals(senderLoc.getWorld()) || player.getLocation().distance(senderLoc) > range)
+         if(!evalConditions(condition, this))
+            continue;
+         if(range != -1 && senderLoc != null)
+            if(!player.getWorld().equals(senderLoc.getWorld()) || player.getLocation().distance(senderLoc) > range)
                continue;
-         for(String msg : advancedBroadcast.broadcast)
-            player.sendMessage(formatMessage(msg, sender, args));
+         sendMessages(abc.broadcast, sender);
       }
    }
    
-   // === Helpers ===
+   public static void sendMessages(List<String> messages, CommandSender sender) {
+      for(String msg : messages)
+         sender.sendMessage(replaceMM(msg));
+   }
    
-   static boolean hasPermissions(Player player, List<String> permissions) {
+   // Helpers
+   
+   private boolean hasPermissions(Player player, List<String> permissions) {
       for(String perm : permissions)
          if(!player.hasPermission(perm))
             return false;

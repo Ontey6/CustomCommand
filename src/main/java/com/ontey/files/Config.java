@@ -1,6 +1,7 @@
 package com.ontey.files;
 
 import com.ontey.Main;
+import com.ontey.holder.LanguageStorage;
 import com.ontey.holder.Paths;
 import com.ontey.log.Log;
 import com.ontey.tab.Tab;
@@ -81,48 +82,29 @@ public class Config {
       return config.getString(path);
    }
    
-   public static List<?> getList(String path) {
-      if(!isList(path))
-         return null;
-      return config.getList(path);
-   }
-   
-   public static List<String> getStringList(String path) {
-      if(!isList(path))
-         return null;
-      return config.getStringList(path);
-   }
-   
-   public Boolean getBoolean(String path) {
-      if(!isBoolean(path))
-         return null;
-      return config.getBoolean(path);
-   }
-   
    // Typechecks
-   
-   @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-   public static boolean isList(String path) {
-      return config.isList(path);
-   }
    
    public static boolean isString(String path) {
       return config.isString(path);
    }
    
-   public static boolean isBoolean(String path) {
-      return config.isBoolean(path);
-   }
+   // Helpers
    
    public static <T> T getOrDefault(String path, T fallback) {
       if(get(path) == null)
          return fallback;
       try {
          // noinspection unchecked
-         return (T) config.getObject(path, fallback.getClass());
+         return (T) config.get(path);
       } catch(ClassCastException e) {
          return fallback;
       }
+   }
+   
+   public static <T> List<T> singletonList(T t) {
+      List<T> out = new ArrayList<>();
+      out.add(t);
+      return out;
    }
    
    // Config-specific methods
@@ -134,8 +116,12 @@ public class Config {
       return PLACEHOLDER_FORMAT.replace("%ph", getString("placeholder-names." + str));
    }
    
+   @Deprecated
    public static String ah(String str) {
-      return ACTIONHOLDER_FORMAT.replace("%ah", str);
+      if(!isString("actionholder-names." + str))
+         return PLACEHOLDER_FORMAT.replace("%ah", str);
+      //noinspection DataFlowIssue
+      return PLACEHOLDER_FORMAT.replace("%ah", getString("actionholder-names." + str));
    }
    
    public static boolean isTrue(String str) {
@@ -143,7 +129,7 @@ public class Config {
    }
    
    public static String defaultPerm(String command) {
-      return DEFAULT_PERMISSION.replace("%cmd", command);
+      return DEFAULT_PERMISSION.replace("%cmd", command.replaceAll("\\s+", "-"));
    }
    
    public static NoTab getNoTab(String str) {
@@ -157,11 +143,11 @@ public class Config {
    }
    
    public static List<String> noTab() {
-      Config.NoTab noTabMode = getNoTab(config.getString(NO_TAB_PATH));
+      Config.NoTab noTabMode = getNoTab(config.getString("defaults.no-tab"));
       return switch(noTabMode) {
-         case NONE -> List.of();
+         case NONE -> new ArrayList<>(0);
          case PLAYERS -> Tab.onlinePlayers();
-         case null -> Commands.getField(config, NO_TAB_PATH);
+         case null -> Files.getField(config, "defaults.no-tab");
       };
    }
    
@@ -174,30 +160,35 @@ public class Config {
       BOOLEAN_TRUE = getOrDefault("boolean-true", new ArrayList<>(List.of("true", "yes")));
       HOTSWAP = getOrDefault("dev.hotswap", false);
       DEFAULT_PERMISSION = getOrDefault("defaults.permission", "ccmd.command.%cmd");
-      DEFAULT_USAGE = getOrDefault("defaults.usage", "/<command>");
-      DEFAULT_DESCRIPTION = getOrDefault("defaults.description", "Server Command");
+      DEFAULT_USAGE = Files.getField(config, "defaults.usage", singletonList("/<command>"));
+      DEFAULT_DESCRIPTION = Files.getField(config, "defaults.description", singletonList("Server Command"));
       DEFAULT_NAMESPACE = getOrDefault("defaults.namespace", "customcommand");
       REMOVE_NAMESPACED_PLUGIN_COMMANDS = getOrDefault("tab.remove-namespaced-plugin-commands", false);
       REMOVE_NAMESPACED_COMMANDS = getOrDefault("tab.remove-namespaced-commands", false);
       REMOVE_COLORS_IN_CONSOLE = getOrDefault("remove-colors-in-console", false);
-      NO_TAB_PATH = "defaults.no-tab";
+      SEND_ARGS_SUGGESTIONS = getOrDefault("format.send-args-suggestions", true);
+      UPDATER = getOrDefault("updater", true);
+      LANGUAGE = new LanguageStorage(config.getConfigurationSection("language"));
+      LANGUAGE.load();
    }
    
-   public static String PREFIX, DEFAULT_NAMESPACE;
+   public static String PREFIX;
    
    public static String PLACEHOLDER_FORMAT, ACTIONHOLDER_FORMAT;
    
    public static List<String> BOOLEAN_TRUE;
    
-   public static String DEFAULT_PERMISSION, DEFAULT_USAGE, DEFAULT_DESCRIPTION;
+   public static String DEFAULT_PERMISSION, DEFAULT_NAMESPACE;
+   
+   public static List<String> DEFAULT_USAGE, DEFAULT_DESCRIPTION;
    
    public static boolean HOTSWAP;
    
    public static boolean REMOVE_NAMESPACED_PLUGIN_COMMANDS, REMOVE_NAMESPACED_COMMANDS;
    
-   public static boolean REMOVE_COLORS_IN_CONSOLE;
+   public static boolean REMOVE_COLORS_IN_CONSOLE, SEND_ARGS_SUGGESTIONS, UPDATER;
    
-   private static String NO_TAB_PATH;
+   public static LanguageStorage LANGUAGE;
    
    public enum NoTab { NONE, PLAYERS }
 }

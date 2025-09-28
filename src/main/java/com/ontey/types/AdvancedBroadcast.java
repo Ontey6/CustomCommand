@@ -1,40 +1,26 @@
 package com.ontey.types;
 
-import com.ontey.execution.Replacement;
-import com.ontey.files.Commands;
-import com.ontey.holder.Paths;
-import com.ontey.holder.Placeholders;
-import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.file.YamlConfiguration;
-import org.jetbrains.annotations.Nullable;
+import com.ontey.execution.Execution;
+import com.ontey.execution.Formattation;
+import lombok.AllArgsConstructor;
+
 import java.util.List;
 
+@AllArgsConstructor
 public class AdvancedBroadcast {
    
-   private final String range;
+   private String range;
    
-   public final List<String> permission;
+   public List<String> permission;
    
-   public final List<String> condition;
+   public List<String> condition;
    
-   public final List<String> broadcast;
+   public List<String> broadcast;
    
-   public AdvancedBroadcast(String range, List<String> permission, List<String> condition, List<String> broadcast) {
-      this.range = range;
-      this.permission = permission;
-      this.broadcast = broadcast;
-      this.condition = condition;
-   }
+   public boolean includeConsole, includeSender;
    
-   @Nullable
-   public static AdvancedBroadcast of(YamlConfiguration config, String command) {
-      if(!config.isConfigurationSection(Paths.AdvancedBroadcast.section(command)))
-         return null;
-      return Commands.getAdvancedBroadcast(config, command);
-   }
-   
-   public double range(CommandSender sender, String[] args) {
-      String str = Placeholders.apply(sender, Replacement.replaceArgs(range, args));
+   public double range(Execution exe) {
+      String str = Formattation.formattedMessage(range, exe);
       if(!str.matches("[+-]?\\d+(\\.\\d+)?"))
          return -1;
       return Double.parseDouble(str);
