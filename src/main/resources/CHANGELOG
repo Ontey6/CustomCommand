@@ -1,49 +1,11 @@
-# version 0.5
+# Version 0.5.1
 
-added command field on commands to set the name of the command
+now broadcasts updater message to OP's on join - add toggle!
 
-made advanced broadcast replace args properly
+fixed escaping of advanced colors
 
-fixed usage and description
+made legacy colors escapable with \&e too rather than just &&e
 
-added preconditions (command conditions) and corresponding error messages
+added mini-message abbreviations
 
-added Url-Calls
-
-made macro Strings properly remove colon in front of the false output
-
-no replace placeholder mow also works in messages
-
-changed placeholder no replace to no-replace and actionholder send to to send-to
-
-added ! (not) operator to conditions
-
-temporarily removed actionholders because they were causing problems
-
-made tab completer better by only showing tab results that start with the user input
-also added static placeholder in tab to make them stay no matter what
-and finally added the ability to make it players to make a list of all online players appear
-
-made conditions placeholders instead of actionholder
-
-actionholder-format is now unused
-
-added mini-message, &# and <r,g,b> format support for messages
-
-added boolean type to args
-
-added signature 'any' to String args type
-
-# Changes after using the plugin myself:
-
-added player, server-player and offline-player type to args
-
-added ability to disable updater
-
-added placeholders: label, usage, description, permission, name, command and condition-error
-
-added Argument Tab
-
-dropped spigot support
-
-added color ends like in mini-message: &/e, &/#hex, </0,0,0>
+allow spaces in <r,g,b>: <_r,_g,_b_> (underscores are possible spaces)

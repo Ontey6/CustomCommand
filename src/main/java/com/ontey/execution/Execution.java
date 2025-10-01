@@ -1,16 +1,12 @@
 package com.ontey.execution;
 
 import com.ontey.CustomCommand;
-import com.ontey.Main;
-import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static com.ontey.execution.ConditionParser.*;
 import static com.ontey.execution.Formattation.replaceMM;

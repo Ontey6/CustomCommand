@@ -63,7 +63,7 @@ re-op:
   commands:
     - '<condition> <player> == AdminName || <player> == Admin2' # multiple lines of conditions
     - '<condition> <player.isOp> == false'                      # mean that all of them have to be
-    - 'op <player>'                                              # true for the line after to be run
+    - 'op <player>'                                             # true for the line after to be run
 
 # Macro Strings
 macro:
@@ -80,8 +80,8 @@ calculate:
     2: ['+', '-', '*', '/', '^', '%']
     3: int
   tab:
-    1: '<static><number>'
-    2: ['+', '-', '*', '/', '^', '%']
+    1: '<static><number>' # makes '<number>' static
+    2: args # returns the list of args
     2: '<static><number>'
   no-tab: none
   aliases: calc
@@ -110,3 +110,20 @@ ccmd-latest:
           - 'The latest version is &e<result>!'
           - 'You are curently running &e<plugin.version>'
           - '$(<result> == <plugin.version> ? &aYou''re running the latest version : &cYou''re not running the latest version!)'
+
+gamemode:
+  command: gm
+  commands: 'gamemode <arg1> <arg2>'
+  args:
+    1:
+      - adventure
+      - creative
+      - spectator
+      - survival
+    2: server-player
+  tab:
+    1: args
+    2: players
+  no-tab: players
+
+ccmd:
