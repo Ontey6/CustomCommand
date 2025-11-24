@@ -1,3 +1,7 @@
+I'm making a clean refresh of this plugin and it's going to need some time.
+
+The wiki might be rewritten for the new version to not miss out on anything.
+
 Wiki on [Github Wiki](https://github.com/Ontey6/CustomCommand/wiki/Getting-Started)
 
 Links:
