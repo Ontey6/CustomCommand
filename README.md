@@ -1,6 +1,4 @@
-I'm making a clean refresh of this plugin and it's going to need some time.
-
-The wiki might be rewritten for the new version to not miss out on anything.
+Will not be updated for some time in favor of making Inevitable the most modern Core Plugin
 
 Wiki on [Github Wiki](https://github.com/Ontey6/CustomCommand/wiki/Getting-Started)
 
