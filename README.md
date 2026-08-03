@@ -1,4 +1,4 @@
-Will not be updated for some time in favor of making Inevitable the most modern Core Plugin
+CustomCommand v2 is in development and a pre-release is probably coming very soon.
 
 Wiki on [Github Wiki](https://github.com/Ontey6/CustomCommand/wiki/Getting-Started)
 
