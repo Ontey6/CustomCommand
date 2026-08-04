@@ -142,6 +142,7 @@ public class CustomCommandTranslator {
 		
 		if(suggestionType == SuggestionType.JAVASCRIPT) {
 			//TODO javascript suggestions
+			
 		}
 	}
 }
