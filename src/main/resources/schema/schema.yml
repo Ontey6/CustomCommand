@@ -1,0 +1,61 @@
+# Schema of some commands
+
+# Command Specifications:
+# Name: hello
+# Sends a message to the sender.
+hello:
+  # basic command config
+  description: 'Says hello!'
+  aliases: ['hi', 'greet']
+  permission: 'ccmd.command.hello'
+  # brigadier
+  executes:
+    # JAVASCRIPT/JS: executes JavaScript. Variables: sender, executor, source, context, SUCCESS, FAIL. (key: "javascript")
+    # JAVASCRIPT_REFERENCE/JS_REFERENCE: executes JavaScript in the file. Same placeholders as above. (key: "path", relative to "CustomCommand/javascript")
+    # COMMAND: executes a command. Contains Placeholders (key: "command")
+    type: JAVASCRIPT # JAVASCRIPT/JS, COMMAND
+    javascript: | # May either return nothing (= returns SUCCESS in code) or a number (int)
+      (() => {
+        sender.sendMessage("Hello!")
+        return SUCCESS
+      })
+  requires:
+    # JAVASCRIPT/JS: executes JavaScript. Variables: sender, executor, source. (key: "javascript")
+    # JAVASCRIPT_REFERENCE/JS_REFERENCE: executes JavaScript in the file. Same placeholders as above. (key: "path", relative to "CustomCommand/javascript")
+    type: JAVASCRIPT
+    javascript: 'false'
+
+echo-num:
+  then:number:
+    # LITERAL: a String literal. Can have fields: executes, requires. (literal is specified after "then:")
+    # ARGUMENT: an Argument type. Can have all fields. (key: "argument")
+    type: ARGUMENT
+    argument:
+      # PRESET: a Preset
+      type: PRESET
+      preset: INTEGER
+      # Fields specific to every Preset:
+      min: 0
+      max: 10
+    executes:
+      type: JAVASCRIPT
+      javascript: 'sender.sendMessage("You chose number " + context.getArgument("number", Integer.class))'
+
+echo:
+  then:message:
+    type: ARGUMENT
+    argument:
+      type: PRESET
+      preset: VARARGS_STRING
+    suggests:
+      # JAVASCRIPT/JS: executes JavaScript. Variables: sender, executor, source. (key: "javascript")
+      # JAVASCRIPT_REFERENCE/JS_REFERENCE: executes JavaScript in the file. Same placeholders as above. (key: "path", relative to "CustomCommand/javascript")
+      # LIST: specifies a list (key: "list")
+      type: LIST
+      list:
+        - 'hello'
+        - 'hi'
+        - 'greetings'
+    executes:
+      type: JAVASCRIPT
+      javascript: 'sender.sendMessage("You chose message " + context.getArgument("message", String.class))'

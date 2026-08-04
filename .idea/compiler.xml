@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Gradle Imported" enabled="true">
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.projectlombok/lombok/1.18.42/8365263844ebb62398e0dc33057ba10ba472d3b8/lombok-1.18.42.jar" />
+        </processorPath>
+        <module name="CustomCommand.main" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel target="25">
+      <module name="OnteyAPI" target="25" />
+      <module name="OnteyAPI.config" target="25" />
+      <module name="OnteyAPI.config.main" target="25" />
+      <module name="OnteyAPI.config.test" target="25" />
+      <module name="OnteyAPI.config.yaml" target="25" />
+      <module name="OnteyAPI.config.yaml.main" target="25" />
+      <module name="OnteyAPI.config.yaml.test" target="25" />
+      <module name="OnteyAPI.main" target="25" />
+      <module name="OnteyAPI.math" target="25" />
+      <module name="OnteyAPI.math.main" target="25" />
+      <module name="OnteyAPI.math.test" target="25" />
+      <module name="OnteyAPI.paper" target="25" />
+      <module name="OnteyAPI.paper.main" target="25" />
+      <module name="OnteyAPI.paper.test" target="25" />
+      <module name="OnteyAPI.test" target="25" />
+    </bytecodeTargetLevel>
+  </component>
+</project>

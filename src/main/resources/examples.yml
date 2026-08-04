@@ -1,0 +1,18 @@
+test:
+  name: 'testcmd'
+  description: 'Testing command'
+  aliases: ['hi', 'greet']
+  then:literal1: # literal called "literal1"
+    type: LITERAL # ArgumentType (enum)
+    then:int1: # integer argument called "int1"
+      type: ARGUMENT # ArgumentType (enum)
+      argument:
+        type: PRESET # ArgumentSelectionType
+        preset: INTEGER # ArgumentPreset
+      suggests:
+        type: list
+        list:
+          - 1
+          - 'Hello'
+          - value: 'Hover me!'
+            tooltip: 'A tooltip!'
