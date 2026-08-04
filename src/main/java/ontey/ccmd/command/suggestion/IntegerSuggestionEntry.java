@@ -10,8 +10,9 @@ import java.util.Map;
 record IntegerSuggestionEntry(int value, @Nullable Message tooltip) implements SuggestionEntry {
 	
 	@Override
-	public void suggestIn(@NonNull SuggestionsBuilder builder) {
-		builder.suggest(value, tooltip);
+	public void suggestIn(@NonNull SuggestionsBuilder builder, @Nullable String input) {
+		if(input == null || String.valueOf(value).startsWith(input))
+			builder.suggest(value, tooltip);
 	}
 	
 	@Override

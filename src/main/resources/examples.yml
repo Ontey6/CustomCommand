@@ -1,18 +1,60 @@
-test:
-  name: 'testcmd'
-  description: 'Testing command'
-  aliases: ['hi', 'greet']
-  then:literal1: # literal called "literal1"
-    type: LITERAL # ArgumentType (enum)
-    then:int1: # integer argument called "int1"
-      type: ARGUMENT # ArgumentType (enum)
+simple-command:
+  description: 'Simple command'
+  aliases: ['simple-cmd', 's-cmd'] # Alternative names for the command that function the exact same.
+  then:literal1: # An argument named 'literal1'. The 'then:' prefix indicates that this is an argument
+    # specifying 'type: LITERAL' is optional. If no type is specified, it defaults to literal anyway.
+    type: LITERAL # The type of this argument. here, it's a LITERAL. That is just a word. Example: '/advancement grant' grant is a literal.
+    then:int1:
+      type: ARGUMENT # An ARGUMENT type (complex types like Player selectors, Integers, Strings...) Example: '/attribute @s ...' @s is a player selector argument
+      argument: # The argument declaration
+        type: PRESET # Choose from a preset. CUSTOM not yet implemented
+        preset: INTEGER # Specifies an int argument
+        # Some arguments have optional/requried fields that specify extra data. INTEGER has optional min and max fields.
+        min: 1
+        max: 64
+      then:str:
+        type: ARGUMENT
+        argument:
+          type: PRESET
+          preset: STRING # Specifies a String argument
+        suggests: # The suggestion declaration. Suggestions were called Tab Completions in Bukkit.
+          type: LIST # Makes this a list. JAVASCRIPT not yet implemented
+          dynamic: true # By default, suggestions stay no matter what you type. When setting this to true, all suggestions that do not start with the player's input will be removed
+          list:
+            - 1 # int suggestion (use if possible, reduces server -> client networking time)
+            - 'Hello' # String suggestion. The default
+            - value: 'Hover me!'    # String suggestion with hover. value can be an int too.
+              tooltip: 'A tooltip!' # The tooltip is shown when the suggestion is hovered
+        # Marks that when this argument is specified last, the command is complete.
+        # When no executes declaration is present, it is assumed that the command can't end on this argument, and an error is shown when executing the command
+        executes: {} # Doesn't have any actual features yet.
+
+tempban:
+  description: 'Temporary ban command'
+  then:player:
+    type: ARGUMENT
+    argument:
+      type: PRESET
+      preset: PLAYER
+    then:time:
+      type: ARGUMENT
       argument:
-        type: PRESET # ArgumentSelectionType
-        preset: INTEGER # ArgumentPreset
-      suggests:
-        type: list
-        list:
-          - 1
-          - 'Hello'
-          - value: 'Hover me!'
-            tooltip: 'A tooltip!'
+        type: PRESET
+        preset: TIME
+        min-time: 20 # Optional argument for TIME
+      executes: {}
+
+name-color:
+  description: 'Change your name color'
+  then:named-color:
+    type: ARGUMENT
+    argument:
+      type: PRESET
+      preset: NAMED_COLOR
+    executes: {}
+  then:hex-color:
+    type: ARGUMENT
+    argument:
+      type: PRESET
+      preset: HEX_COLOR
+    executes: {}

@@ -8,7 +8,6 @@ import ontey.api.command.config.CommandConfig;
 import ontey.api.config.ConfigSection;
 import ontey.ccmd.command.CommandSection;
 import ontey.ccmd.command.CustomCommand;
-import ontey.ccmd.command.argument.ArgumentTypeHolder;
 import ontey.ccmd.command.exception.CustomCommandParseException;
 import ontey.ccmd.command.suggestion.SuggestionEntry;
 import ontey.ccmd.command.translator.enums.ArgumentPreset;
@@ -19,6 +18,8 @@ import ontey.ccmd.command.translator.enums.SuggestionType;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
+import static ontey.api.command.Command.SUCCESS;
 
 public class CustomCommandTranslator {
 	
@@ -71,9 +72,9 @@ public class CustomCommandTranslator {
 	private static ArgumentBuilder<CommandSourceStack, ?> createNode(String rootName, ConfigSection section, boolean isRoot) {
 		String name = isRoot ? rootName : section.getName().substring(SELECTION_PREFIX.length());
 		
-		ArgumentType argumentType = isRoot ? ArgumentType.LITERAL : section.getEnum("type", ArgumentType.class, ArgumentType.LITERAL);
+		ArgumentType argumentTypeEnum = isRoot ? ArgumentType.LITERAL : section.getEnum("type", ArgumentType.class, ArgumentType.LITERAL);
 		
-		if(argumentType == ArgumentType.LITERAL)
+		if(argumentTypeEnum == ArgumentType.LITERAL)
 			return Arg.literal(name);
 		
 		var argumentSection = section.getSection("argument");
@@ -86,7 +87,7 @@ public class CustomCommandTranslator {
 		if(selectionType == null)
 			throw new CustomCommandParseException("In command '" + rootName + "', the argument '" + name + "' doesn't specify an argument selection type (The 'argument.type' field is missing)");
 		
-		ArgumentTypeHolder argumentTypeHolder = null;
+		com.mojang.brigadier.arguments.ArgumentType<?> argumentType = null;
 		
 		if(selectionType == ArgumentSelectionType.PRESET) {
 			var preset = argumentSection.getEnum("preset", ArgumentPreset.class);
@@ -94,13 +95,13 @@ public class CustomCommandTranslator {
 			if(preset == null)
 				throw new CustomCommandParseException("In command '" + rootName + "', the argument '" + name + "' doesn't specify a preset even though the argument selection type is PRESET (The 'argument.preset' field is missing)");
 			
-			argumentTypeHolder = preset;
+			argumentType = preset.argumentType(argumentSection);
 		}
 		
-		if(argumentTypeHolder == null)
+		if(argumentType == null)
 			throw new CustomCommandParseException("In command '" + rootName + "', the argument type of the argument '" + name + "' couldn't be resolved");
 		
-		var argument = Arg.of(name, argumentTypeHolder.argumentType(argumentSection));
+		var argument = Arg.of(name, argumentType);
 		
 		//TODO custom arguments
 		//TODO add logic for execution so the commands can actually do something
@@ -108,6 +109,10 @@ public class CustomCommandTranslator {
 		var suggestsSection = section.getSection("suggests");
 		if(suggestsSection != null)
 			addSuggestions(argument, suggestsSection, rootName, name);
+		
+		var executesSection = section.getSection("executes");
+		if(executesSection != null)
+			addExecutions(argument, suggestsSection, rootName, name);
 		
 		return argument;
 	}
@@ -132,9 +137,13 @@ public class CustomCommandTranslator {
 			if(suggestions.contains(null))
 				throw new CustomCommandParseException("In command '" + rootName + "', the argument '" + name + "''s list contains one or more invalid suggestions");
 			
+			boolean dynamicSuggestions = section.getBoolean("dynamic");
+			
 			builder.suggests((_, suggestionsBuilder) -> {
+				var remaining = suggestionsBuilder.getRemainingLowerCase();
 				for(var suggestion : suggestions)
-					suggestion.suggestIn(suggestionsBuilder);
+					if(dynamicSuggestions)
+						suggestion.suggestIn(suggestionsBuilder, remaining);
 				
 				return suggestionsBuilder.buildFuture();
 			});
@@ -144,5 +153,9 @@ public class CustomCommandTranslator {
 			//TODO javascript suggestions
 			
 		}
+	}
+	
+	private static void addExecutions(RequiredArgumentBuilder<CommandSourceStack, ?> builder, ConfigSection section, String rootName, String name) {
+		builder.executes(_ -> SUCCESS);
 	}
 }

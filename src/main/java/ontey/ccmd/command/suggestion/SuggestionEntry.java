@@ -13,7 +13,7 @@ import java.util.Map;
 @AutoRegistered
 public interface SuggestionEntry extends ConfigSerializable {
 	
-	void suggestIn(@NonNull SuggestionsBuilder builder);
+	void suggestIn(@NonNull SuggestionsBuilder builder, @Nullable String input);
 	
 	@Nullable
 	static SuggestionEntry deserialize(@NonNull Map<String, Object> map) {

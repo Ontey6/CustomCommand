@@ -2,15 +2,15 @@ package ontey.ccmd.command.translator.enums;
 
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.arguments.*;
+import io.papermc.paper.command.brigadier.argument.ArgumentTypes;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import ontey.api.config.ConfigSection;
-import ontey.ccmd.command.argument.ArgumentTypeHolder;
 
 import java.util.function.Function;
 
 @AllArgsConstructor
-public enum ArgumentPreset implements ArgumentTypeHolder {
+public enum ArgumentPreset {
 	WORD(_ -> StringArgumentType.word()),
 	STRING(_ -> StringArgumentType.string()),
 	VARARGS_STRING(_ -> StringArgumentType.greedyString()),
@@ -63,6 +63,44 @@ public enum ArgumentPreset implements ArgumentTypeHolder {
 			return DoubleArgumentType.doubleArg();
 		}
 	}),
+	ENTITY(_ -> ArgumentTypes.entity()),
+	ENTITIES(_ -> ArgumentTypes.entities()),
+	PLAYER(_ -> ArgumentTypes.player()),
+	PLAYERS(_ -> ArgumentTypes.players()),
+	PLAYER_PROFILES(_ -> ArgumentTypes.playerProfiles()),
+	BLOCK_POSITION(_ -> ArgumentTypes.blockPosition()),
+	COLUMN_BLOCK_POSITION(_ -> ArgumentTypes.columnBlockPosition()),
+	BLOCK_IN_WORLD_PREDICATE(_ -> ArgumentTypes.blockInWorldPredicate()),
+	FINE_POSITION(section -> ArgumentTypes.finePosition(section.getBoolean("center-integers", false))),
+	COLUMN_FINE_POSITION(section -> ArgumentTypes.columnFinePosition(section.getBoolean("center-integers", false))),
+	ROTATION(_ -> ArgumentTypes.rotation()),
+	ANGLE(_ -> ArgumentTypes.angle()),
+	AXES(_ -> ArgumentTypes.axes()),
+	BLOCK_STATE(_ -> ArgumentTypes.blockState()),
+	ITEM_STACK(_ -> ArgumentTypes.itemStack()),
+	ITEM_PREDICATE(_ -> ArgumentTypes.itemPredicate()),
+	NAMED_COLOR(_ -> ArgumentTypes.namedColor()),
+	HEX_COLOR(_ -> ArgumentTypes.hexColor()),
+	COMPONENT(_ -> ArgumentTypes.component()),
+	STYLE(_ -> ArgumentTypes.style()),
+	SIGNED_MESSAGE(_ -> ArgumentTypes.signedMessage()),
+	SCOREBOARD_DISPLAY_SLOT(_ -> ArgumentTypes.scoreboardDisplaySlot()),
+	NAMESPACED_KEY(_ -> ArgumentTypes.namespacedKey()),
+	KEY(_ -> ArgumentTypes.key()),
+	INTEGER_RANGE(_ -> ArgumentTypes.integerRange()),
+	DOUBLE_RANGE(_ -> ArgumentTypes.doubleRange()),
+	WORLD(_ -> ArgumentTypes.world()),
+	GAME_MODE(_ -> ArgumentTypes.gameMode()),
+	HEIGHT_MAP(_ -> ArgumentTypes.heightMap()),
+	UUID(_ -> ArgumentTypes.uuid()),
+	OBJECTIVE_CRITERIA(_ -> ArgumentTypes.objectiveCriteria()),
+	ENTITY_ANCHOR(_ -> ArgumentTypes.entityAnchor()),
+	TIME(section -> ArgumentTypes.time(section.getInt("min-time", 0))),
+	TEMPLATE_MIRROR(_ -> ArgumentTypes.templateMirror()),
+	TEMPLATE_ROTATION(_ -> ArgumentTypes.templateRotation()),
+	// too complex, would require a whole system
+	//RESOURCE(section -> ),
+	//RESOURCE_KEY(section -> ),
 	;
 	
 	@NonNull
