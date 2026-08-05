@@ -29,6 +29,28 @@ simple-command:
         # When no executes declaration is present, it is assumed that the command can't end on this argument, and an error is shown when executing the command
         executes: {} # Doesn't have any actual features yet.
 
+js-suggestions:
+  description: 'Command with JavaScript suggestions'
+  then:str:
+    type: ARGUMENT
+    argument:
+      type: PRESET
+      preset: STRING
+    suggests:
+      type: JAVASCRIPT
+      dynamic: true
+      javascript: |
+        () => {
+          return [
+            "Simple Suggestion",
+            12,
+        
+            //SuggestionEntry.integer(5, "A tooltip!")
+            //SuggestionEntry.string("Hover me!", "A tooltip!"),
+          ]
+        }
+    executes: {}
+
 tempban:
   description: 'Temporary ban command'
   then:player:

@@ -1,7 +1,7 @@
 package ontey.ccmd.command.translator;
 
 import com.mojang.brigadier.builder.ArgumentBuilder;
-import com.mojang.brigadier.builder.RequiredArgumentBuilder;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import ontey.api.command.argument.Arg;
 import ontey.api.command.config.CommandConfig;
@@ -9,38 +9,21 @@ import ontey.api.config.ConfigSection;
 import ontey.ccmd.command.CommandSection;
 import ontey.ccmd.command.CustomCommand;
 import ontey.ccmd.command.exception.CustomCommandParseException;
-import ontey.ccmd.command.suggestion.SuggestionEntry;
 import ontey.ccmd.command.translator.enums.ArgumentPreset;
 import ontey.ccmd.command.translator.enums.ArgumentSelectionType;
 import ontey.ccmd.command.translator.enums.ArgumentType;
-import ontey.ccmd.command.translator.enums.SuggestionType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
-
-import static ontey.api.command.Command.SUCCESS;
 
 public class CustomCommandTranslator {
 	
 	private static final String SELECTION_PREFIX = "then:";
 	
 	public static CustomCommand translateYaml(ConfigSection section) {
-		CommandConfig values = new CommandConfig(
-		  section.getName(),
-		  section.getStringList("aliases"),
-		  section.getString("description"),
-		  section.getString("permission"),
-		  section.getBoolean("console-only", false),
-		  new HashMap<>(), // "options" are differently implemented here, therefore not needed
-		  section.getBoolean("enabled", true)
-		);
+		CommandConfig values = createCommandConfig(section);
 		
-		var argumentBuilder = createNode(values.name(), section, true);
-		var literalBuilder = Arg
-		  .literal(values.name())
-		  .executes(argumentBuilder.getCommand())
-		  .requires(argumentBuilder.getRequirement());
+		var literalBuilder = createRoot(values, section);
 		
 		CustomCommand cmd = new CustomCommand(literalBuilder, new ArrayList<>(), values);
 		
@@ -51,6 +34,16 @@ public class CustomCommandTranslator {
 				cmd.addChild(translateSection(cmd.getName(), cmd, section.getSection(key)));
 		
 		return cmd;
+	}
+	
+	private static LiteralArgumentBuilder<CommandSourceStack> createRoot(CommandConfig values, ConfigSection section) {
+		ArgumentType argumentType = section.getEnum("type", ArgumentType.class);
+		
+		if(argumentType == ArgumentType.ARGUMENT)
+			throw new CustomCommandParseException("In command '" + values.name() + "', the root has an argument type of ARGUMENT, which is not allowed. The root has to be a LITERAL");
+		
+		//noinspection unchecked as the argument type has to be LITERAL, this is safe to assume
+		return (LiteralArgumentBuilder<CommandSourceStack>) createNode(values.name(), section, true);
 	}
 	
 	private static CommandSection translateSection(String rootName, CommandSection root, ConfigSection section) {
@@ -74,88 +67,68 @@ public class CustomCommandTranslator {
 		
 		ArgumentType argumentTypeEnum = isRoot ? ArgumentType.LITERAL : section.getEnum("type", ArgumentType.class, ArgumentType.LITERAL);
 		
-		if(argumentTypeEnum == ArgumentType.LITERAL)
-			return Arg.literal(name);
+		ArgumentBuilder<CommandSourceStack, ?> argumentBuilder = null;
 		
-		var argumentSection = section.getSection("argument");
-		
-		if(argumentSection == null)
-			throw new CustomCommandParseException("In command '" + rootName + "', the argument '" + name + "' doesn't specify an argument declaration (The 'argument' section is missing)");
-		
-		var selectionType = argumentSection.getEnum("type", ArgumentSelectionType.class);
-		
-		if(selectionType == null)
-			throw new CustomCommandParseException("In command '" + rootName + "', the argument '" + name + "' doesn't specify an argument selection type (The 'argument.type' field is missing)");
-		
-		com.mojang.brigadier.arguments.ArgumentType<?> argumentType = null;
-		
-		if(selectionType == ArgumentSelectionType.PRESET) {
-			var preset = argumentSection.getEnum("preset", ArgumentPreset.class);
-			
-			if(preset == null)
-				throw new CustomCommandParseException("In command '" + rootName + "', the argument '" + name + "' doesn't specify a preset even though the argument selection type is PRESET (The 'argument.preset' field is missing)");
-			
-			argumentType = preset.argumentType(argumentSection);
+		if(argumentTypeEnum == ArgumentType.LITERAL) {
+			argumentBuilder = Arg.literal(name);
 		}
 		
-		if(argumentType == null)
-			throw new CustomCommandParseException("In command '" + rootName + "', the argument type of the argument '" + name + "' couldn't be resolved");
-		
-		var argument = Arg.of(name, argumentType);
-		
-		//TODO custom arguments
-		//TODO add logic for execution so the commands can actually do something
-		
-		var suggestsSection = section.getSection("suggests");
-		if(suggestsSection != null)
-			addSuggestions(argument, suggestsSection, rootName, name);
+		if(argumentTypeEnum == ArgumentType.ARGUMENT) {
+			var argumentSection = section.getSection("argument");
+			
+			if(argumentSection == null)
+				throw new CustomCommandParseException("In command '" + rootName + "', the argument '" + name + "' doesn't specify an argument declaration (The 'argument' section is missing)");
+			
+			var selectionType = argumentSection.getEnum("type", ArgumentSelectionType.class);
+			
+			if(selectionType == null)
+				throw new CustomCommandParseException("In command '" + rootName + "', the argument '" + name + "' doesn't specify an argument selection type (The 'argument.type' field is missing)");
+			
+			com.mojang.brigadier.arguments.ArgumentType<?> argumentType = null;
+			
+			if(selectionType == ArgumentSelectionType.PRESET) {
+				var preset = argumentSection.getEnum("preset", ArgumentPreset.class);
+				
+				if(preset == null)
+					throw new CustomCommandParseException("In command '" + rootName + "', the argument '" + name + "' doesn't specify a preset even though the argument selection type is PRESET (The 'argument.preset' field is missing)");
+				
+				argumentType = preset.argumentType(argumentSection);
+			}
+			
+			if(argumentType == null)
+				throw new CustomCommandParseException("In command '" + rootName + "', the argument type of the argument '" + name + "' couldn't be resolved");
+			
+			var argument = Arg.of(name, argumentType);
+			
+			//TODO custom arguments
+			
+			var suggestsSection = section.getSection("suggests");
+			if(suggestsSection != null)
+				SuggestionTranslator.addSuggestions(argument, suggestsSection, rootName, name);
+			
+			argumentBuilder = argument;
+		}
 		
 		var executesSection = section.getSection("executes");
 		if(executesSection != null)
-			addExecutions(argument, suggestsSection, rootName, name);
+			ExecutionTranslator.addExecution(argumentBuilder, executesSection, rootName, name);
 		
-		return argument;
+		var requiresSection = section.getSection("requires");
+		if(requiresSection != null)
+			RequirementTranslator.addRequirement(argumentBuilder, requiresSection, rootName, name);
+		
+		return argumentBuilder;
 	}
 	
-	private static void addSuggestions(RequiredArgumentBuilder<CommandSourceStack, ?> builder, ConfigSection section, String rootName, String name) {
-		var suggestionType = section.getEnum("type", SuggestionType.class);
-		
-		if(suggestionType == null)
-			throw new CustomCommandParseException("In command '" + rootName + "', the argument '" + name + "' specifies a 'suggests' section, but not a (valid) type! (suggestions.type is either not set or an invalid value)");
-		
-		if(suggestionType == SuggestionType.LIST) {
-			List<?> rawSuggestions = section.getList("list");
-			
-			if(rawSuggestions == null)
-				throw new CustomCommandParseException("In command '" + rootName + "', the argument '" + name + "' specifies the LIST type, but doesn't specify (a valid) one (suggestions.list is either not set or an invalid value)");
-			
-			List<SuggestionEntry> suggestions = new ArrayList<>(rawSuggestions.size());
-			
-			for(Object rawSuggestion : rawSuggestions)
-				suggestions.add(SuggestionEntry.deserialize(rawSuggestion));
-			
-			if(suggestions.contains(null))
-				throw new CustomCommandParseException("In command '" + rootName + "', the argument '" + name + "''s list contains one or more invalid suggestions");
-			
-			boolean dynamicSuggestions = section.getBoolean("dynamic");
-			
-			builder.suggests((_, suggestionsBuilder) -> {
-				var remaining = suggestionsBuilder.getRemainingLowerCase();
-				for(var suggestion : suggestions)
-					if(dynamicSuggestions)
-						suggestion.suggestIn(suggestionsBuilder, remaining);
-				
-				return suggestionsBuilder.buildFuture();
-			});
-		}
-		
-		if(suggestionType == SuggestionType.JAVASCRIPT) {
-			//TODO javascript suggestions
-			
-		}
-	}
-	
-	private static void addExecutions(RequiredArgumentBuilder<CommandSourceStack, ?> builder, ConfigSection section, String rootName, String name) {
-		builder.executes(_ -> SUCCESS);
+	private static CommandConfig createCommandConfig(ConfigSection section) {
+		return new CommandConfig(
+		  section.getName(),
+		  section.getStringList("aliases"),
+		  section.getString("description"),
+		  section.getString("permission"),
+		  section.getBoolean("console-only", false),
+		  new HashMap<>(),
+		  section.getBoolean("enabled", true)
+		);
 	}
 }

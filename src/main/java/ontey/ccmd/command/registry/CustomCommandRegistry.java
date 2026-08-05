@@ -1,20 +1,23 @@
 package ontey.ccmd.command.registry;
 
+import io.papermc.paper.plugin.bootstrap.BootstrapContext;
 import lombok.NonNull;
+import ontey.api.command.registry.CommandRegistry;
 import ontey.api.command.registry.RegistryCommand;
 import ontey.api.config.yaml.file.YamlFile;
+import ontey.api.filelog.FileLog;
 import ontey.ccmd.command.CustomCommand;
 import ontey.ccmd.command.translator.CustomCommandTranslator;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import static ontey.ccmd.Main.plugin;
 
 public final class CustomCommandRegistry {
 	
@@ -34,53 +37,73 @@ public final class CustomCommandRegistry {
 		return Set.copyOf(registeredCommands);
 	}
 	
-	public static void registerCustomCommands() {
-		registeredCustomCommands.clear();
-		registeredCommands.clear();
-		
-		Set<String> registeredCommandsCache = new HashSet<>();
-		
-		for(var cmd : getCommands()) {
-			if(!registeredCommandsCache.add(cmd.getName())) {
-				plugin.getLog().warn("The command '" + cmd.getName() + "' is a duplicate and will not be registered.");
-				continue;
+	public static void registerCustomCommands(BootstrapContext context) {
+		try {
+			registeredCustomCommands.clear();
+			registeredCommands.clear();
+			
+			Set<String> registeredCommandsCache = new HashSet<>();
+			
+			CommandRegistry registry = new CommandRegistry(context.getLifecycleManager());
+			FileLog fileLog = new FileLog("CustomCommand", context.getDataDirectory().toFile());
+			
+			for(var cmd : getCommands(context, fileLog)) {
+				if(!registeredCommandsCache.add(cmd.getName())) {
+					context.getLogger().warn("The command '{}' is a duplicate and will not be registered.", cmd.getName());
+					continue;
+				}
+				
+				var registryCommand = cmd.buildCommand().build();
+				registry.register(registryCommand);
+				
+				registeredCommands.add(registryCommand);
+				registeredCustomCommands.add(cmd);
 			}
-			
-			var registryCommand = cmd.buildCommand().build();
-			plugin.registerCommand(registryCommand);
-			
-			registeredCommands.add(registryCommand);
-			registeredCustomCommands.add(cmd);
+		} catch(Exception e) {
+			context.getLogger().error("An unexpected exception occurred", e);
 		}
 	}
 	
-	private static List<CustomCommand> getCommands() {
+	private static List<CustomCommand> getCommands(BootstrapContext context, FileLog fileLog) {
 		List<CustomCommand> out = new ArrayList<>();
 		
-		for(File file : getCommandFiles())
-			addCommands(file, out);
+		for(File file : getCommandFiles(context, fileLog))
+			addCommands(file, out, context, fileLog);
 		
 		return out;
 	}
 	
-	public static File[] getCommandFiles() {
-		File dir = new File(plugin.getDataFolder(), "commands");
+	public static File[] getCommandFiles(BootstrapContext context, FileLog fileLog) {
+		File dir = new File(context.getDataDirectory().toFile(), "commands");
 		
-		if(!dir.exists()) {
-			if(!dir.mkdirs())
-				plugin.getLogger().warning("Could not create commands directory");
-			try {
-				Files.copy(plugin.getResource("examples.yml"), dir.toPath().resolve("examples.yml"));
-			} catch(IOException e) {
-				plugin.getLog().warn("Couldn't create example commands file examples.yml");
-				plugin.getFileLog().saveStackTrace(e);
-			}
-		}
+		if(!dir.exists())
+			createCommandsDirectoryAndExamples(dir, context, fileLog);
 		
 		return getFiles(dir);
 	}
 	
-	private static void addCommands(File file, List<CustomCommand> out) {
+	private static void createCommandsDirectoryAndExamples(File dir, BootstrapContext context, FileLog fileLog) {
+		if(!dir.mkdirs())
+			context.getLogger().warn("Could not create commands directory");
+		try {
+			URL url = CustomCommandRegistry.class.getClassLoader().getResource("examples.yml");
+			
+			if(url == null) {
+				context.getLogger().warn("Could not find examples.yml in the JAR, not copying it");
+				return;
+			}
+			
+			URLConnection connection = url.openConnection();
+			connection.setUseCaches(false);
+			
+			Files.copy(connection.getInputStream(), dir.toPath().resolve("examples.yml"));
+		} catch(IOException e) {
+			context.getLogger().warn("Couldn't create example commands file examples.yml");
+			fileLog.saveStackTrace(e);
+		}
+	}
+	
+	private static void addCommands(File file, List<CustomCommand> out, BootstrapContext context, FileLog fileLog) {
 		try {
 			var config = new YamlFile(file);
 			
@@ -100,17 +123,8 @@ public final class CustomCommandRegistry {
 				out.add(cmd);
 			}
 		} catch(Exception e) {
-			plugin.getLog().error(
-			  "+-+-+-+-+-+-+-+-+-+-+-+-CCMD-+-+-+-+-+-+-+-+-+-+-+-+-+",
-			  "  Couldn't load the commands file named '" + file.getName() + "'.",
-			  "  Look at the stack-trace below, so you can identify the error.",
-			  "  There is probably a syntax error in the yml.",
-			  "  Fix the error, then restart the server and it will work again.",
-			  "  The plugin will just continue without this file.",
-			  "+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+"
-			);
-			//noinspection CallToPrintStackTrace
-			e.printStackTrace();
+			context.getLogger().error("Couldn't load command file {}. The plugin will continue without this file.", file.getName());
+			fileLog.saveStackTrace(e);
 		}
 	}
 	

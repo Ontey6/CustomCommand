@@ -13,6 +13,6 @@ public final class Main extends OnteyPlugin {
 
     @Override
     public void onEnable() {
-        CustomCommandRegistry.registerCustomCommands();
+        load();
     }
 }

@@ -1,7 +1,7 @@
 package ontey.ccmd.command.translator.enums;
 
-import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.arguments.*;
+import com.mojang.brigadier.arguments.ArgumentType;
 import io.papermc.paper.command.brigadier.argument.ArgumentTypes;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;

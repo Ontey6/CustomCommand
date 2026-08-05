@@ -6,6 +6,7 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import lombok.NonNull;
 import ontey.api.config.serialization.ConfigSerializable;
 import ontey.api.loader.AutoRegistered;
+import org.graalvm.polyglot.HostAccess;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
@@ -47,8 +48,8 @@ public interface SuggestionEntry extends ConfigSerializable {
 	}
 	
 	@NonNull
-	static SuggestionEntry string(@NonNull String string, @Nullable Message tooltip) {
-		return new StringSuggestionEntry(string, tooltip);
+	static SuggestionEntry string(@NonNull String string, @Nullable String tooltip) {
+		return new StringSuggestionEntry(string, new LiteralMessage(tooltip));
 	}
 	
 	@NonNull
@@ -57,8 +58,9 @@ public interface SuggestionEntry extends ConfigSerializable {
 	}
 	
 	@NonNull
-	static SuggestionEntry integer(int integer, @Nullable Message tooltip) {
-		return new IntegerSuggestionEntry(integer, tooltip);
+	@HostAccess.Export
+	static SuggestionEntry integer(int integer, @Nullable String tooltip) {
+		return new IntegerSuggestionEntry(integer, new LiteralMessage(tooltip));
 	}
 	
 	@NonNull
