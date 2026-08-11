@@ -76,7 +76,7 @@ public final class JavascriptUtil {
 	}
 	
 	public static String getFileContents(ParseContext context, String filename) {
-		File javascriptDirectory = new File(".", "plugins/CustomCommand/javscript");
+		File javascriptDirectory = new File(".", "plugins/CustomCommand/javascript");
 		
 		if(!javascriptDirectory.exists())
 			javascriptDirectory.mkdirs();

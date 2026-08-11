@@ -28,6 +28,7 @@ import java.util.function.Function;
 import static ontey.api.command.Command.SUCCESS;
 import static ontey.ccmd.format.Formatter.format;
 import static ontey.ccmd.util.JavascriptUtil.addContextToJavascript;
+import static ontey.ccmd.util.JavascriptUtil.getFileContents;
 
 @AllArgsConstructor
 public enum ExecutionType {
@@ -37,29 +38,17 @@ public enum ExecutionType {
 		if(code == null)
 			throw context.newException("Specifies the JAVASCRIPT execution type, but doesn't specify the javascript String ('executes.javascript is not set')");
 		
-		Javascript javascript = JavascriptUtil.createBaseJavascript();
-		
-		builder.executes(ctx -> {
-			addContextToJavascript(ctx, javascript);
-			
-			try {
-				var function = (Function<Object[], Object>) javascript.eval(code);
-				
-				if(function == null)
-					throw context.newException("Javascript execution could not be evaluated (They should return an arrow function that optionally returns an integer like '() => {...}' or '() => 1')");
-				
-				var returned = (Integer) function.apply(new Object[0]);
-				
-				return returned == null ? SUCCESS : returned;
-			} catch(JavaScriptException e) {
-				throw context.newException("A javascript error occurred", e);
-			} catch(ClassCastException e) {
-				throw context.newException("Javascript execution doesn't return the right type (They should return an arrow function that optionally returns an integer like '() => {...}'  or '() => 1')");
-			}
-		});
+		addJavascript(builder, code, context);
 	}),
 	JAVASCRIPT_REFERENCE((builder, section, context) -> {
-	
+		String filename = section.getString("javascript-file");
+		
+		if(filename == null)
+			throw context.newException("Specifies the JAVASCRIPT_REFERENCE suggestion type, but doesn't specify a javascript reference file ('suggests.javascript-file' is not set)");
+		
+		String code = getFileContents(context, filename);
+		
+		addJavascript(builder, code, context);
 	}),
 	COMMANDS((builder, section, context) -> {
 		if(!section.isList("commands"))
@@ -216,6 +205,29 @@ public enum ExecutionType {
 		Set<BossBar.Flag> flags = bossBarSection.getEnumSet("flags", BossBar.Flag.class);
 		
 		return new BossBarMeta(rawName, progress, color, overlay, flags);
+	}
+	
+	private static void addJavascript(ArgumentBuilder<CommandSourceStack, ?> builder, String code, ParseContext context) {
+		Javascript javascript = JavascriptUtil.createBaseJavascript();
+		
+		builder.executes(ctx -> {
+			addContextToJavascript(ctx, javascript);
+			
+			try {
+				var function = (Function<Object[], Object>) javascript.eval(code);
+				
+				if(function == null)
+					throw context.newException("Javascript execution could not be evaluated (They should return an arrow function that optionally returns an integer like '() => {...}' or '() => 1')");
+				
+				var returned = (Integer) function.apply(new Object[0]);
+				
+				return returned == null ? SUCCESS : returned;
+			} catch(JavaScriptException e) {
+				throw context.newException("A javascript error occurred", e);
+			} catch(ClassCastException e) {
+				throw context.newException("Javascript execution doesn't return the right type (They should return an arrow function that optionally returns an integer like '() => {...}'  or '() => 1')");
+			}
+		});
 	}
 	
 	private record BossBarMeta(String rawName, float progress, BossBar.Color color, BossBar.Overlay overlay, Set<BossBar.Flag> flags) {
