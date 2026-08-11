@@ -6,7 +6,7 @@
 hello:
   # basic command config
   description: 'Says hello!'
-  aliases: ['hi', 'greet']
+  aliases: [ 'hi', 'greet' ]
   permission: 'ccmd.command.hello'
   # brigadier
   executes:
@@ -39,7 +39,7 @@ echo-num:
       max: 10
     executes:
       type: JAVASCRIPT
-      javascript: 'sender.sendMessage("You chose number " + context.getArgument("number", Integer.class))'
+      javascript: 'sender.sendMessage("You chose number " + getArgument("number"))'
 
 echo:
   then:message:
@@ -58,4 +58,17 @@ echo:
         - 'greetings'
     executes:
       type: JAVASCRIPT
-      javascript: 'sender.sendMessage("You chose message " + context.getArgument("message", String.class))'
+      javascript: 'sender.sendMessage("You chose message " + getArgument("message"))'
+
+title-example:
+  then:title:
+    type: ARGUMENT
+    argument:
+      type: PRESET
+      preset: TITLE
+      title: ''
+      subtitle: ''
+      times:
+        fade-in: 0
+        stay: 0
+        fade-out: 0

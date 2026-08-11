@@ -3,22 +3,22 @@ package ontey.ccmd.command.translator;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
-import ontey.api.command.argument.Arg;
+import lombok.NonNull;
 import ontey.api.command.config.CommandConfig;
 import ontey.api.config.ConfigSection;
 import ontey.ccmd.command.CommandSection;
 import ontey.ccmd.command.CustomCommand;
-import ontey.ccmd.command.exception.CustomCommandParseException;
-import ontey.ccmd.command.translator.enums.ArgumentPreset;
-import ontey.ccmd.command.translator.enums.ArgumentSelectionType;
-import ontey.ccmd.command.translator.enums.ArgumentType;
+import ontey.ccmd.command.context.ParseContext;
+import ontey.ccmd.command.translator.enums.CommandComponentType;
+import ontey.ccmd.command.translator.enums.ExecutionType;
+import ontey.ccmd.command.translator.enums.RequirementType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
 public class CustomCommandTranslator {
 	
-	private static final String SELECTION_PREFIX = "then:";
+	private static final String ARGUMENT_PREFIX = "then:", LITERAL_PREFIX = "literal:", REQUIRED_ARGUMENT_PREFIX = "argument:";
 	
 	public static CustomCommand translateYaml(ConfigSection section) {
 		CommandConfig values = createCommandConfig(section);
@@ -30,30 +30,32 @@ public class CustomCommandTranslator {
 		var keys = section.getKeys(false);
 		
 		for(var key : keys)
-			if(key.startsWith(SELECTION_PREFIX) && section.isSection(key))
+			if(key.startsWith(ARGUMENT_PREFIX) && section.isSection(key))
 				cmd.addChild(translateSection(cmd.getName(), cmd, section.getSection(key)));
 		
 		return cmd;
 	}
 	
-	private static LiteralArgumentBuilder<CommandSourceStack> createRoot(CommandConfig values, ConfigSection section) {
-		ArgumentType argumentType = section.getEnum("type", ArgumentType.class);
+	private static LiteralArgumentBuilder<CommandSourceStack> createRoot(@NonNull CommandConfig values, @NonNull ConfigSection section) {
+		CommandComponentType commandComponentType = section.getEnum("type", CommandComponentType.class);
+		ParseContext context = new ParseContext(values.name(), true);
 		
-		if(argumentType == ArgumentType.ARGUMENT)
-			throw new CustomCommandParseException("In command '" + values.name() + "', the root has an argument type of ARGUMENT, which is not allowed. The root has to be a LITERAL");
+		if(commandComponentType == CommandComponentType.ARGUMENT)
+			throw context.newException("The command root has a command component type of ARGUMENT, but the root has to be LITERAL. You can remove the field as LITERAL is the default for the root");
 		
 		//noinspection unchecked as the argument type has to be LITERAL, this is safe to assume
-		return (LiteralArgumentBuilder<CommandSourceStack>) createNode(values.name(), section, true);
+		return (LiteralArgumentBuilder<CommandSourceStack>) createNode(context, section);
 	}
 	
 	private static CommandSection translateSection(String rootName, CommandSection root, ConfigSection section) {
-		var node = createNode(rootName, section, false);
-		String name = section.getName().substring(SELECTION_PREFIX.length());
+		String name = section.getName().substring(ARGUMENT_PREFIX.length());
+		var context = new ParseContext(rootName, name);
+		var node = createNode(context, section);
 		
 		var child = root.createChild(name, node);
 		
 		for(var key : section.getKeys(false)) {
-			if(!key.startsWith(SELECTION_PREFIX) || !section.isSection(key))
+			if(!key.startsWith(ARGUMENT_PREFIX) || !section.isSection(key))
 				continue;
 			
 			child.addChild(translateSection(rootName, child, section.getSection(key)));
@@ -62,60 +64,23 @@ public class CustomCommandTranslator {
 		return child;
 	}
 	
-	private static ArgumentBuilder<CommandSourceStack, ?> createNode(String rootName, ConfigSection section, boolean isRoot) {
-		String name = isRoot ? rootName : section.getName().substring(SELECTION_PREFIX.length());
+	private static ArgumentBuilder<CommandSourceStack, ?> createNode(ParseContext context, ConfigSection section) {
+		String name = context.isRoot() ? context.rootName() : section.getName().substring(ARGUMENT_PREFIX.length());
+		context = context.withArgumentName(name);
 		
-		ArgumentType argumentTypeEnum = isRoot ? ArgumentType.LITERAL : section.getEnum("type", ArgumentType.class, ArgumentType.LITERAL);
+		CommandComponentType commandComponentType = context.isRoot()
+		  ? CommandComponentType.LITERAL
+		  : section.getEnum("type", CommandComponentType.class, CommandComponentType.LITERAL);
 		
-		ArgumentBuilder<CommandSourceStack, ?> argumentBuilder = null;
-		
-		if(argumentTypeEnum == ArgumentType.LITERAL) {
-			argumentBuilder = Arg.literal(name);
-		}
-		
-		if(argumentTypeEnum == ArgumentType.ARGUMENT) {
-			var argumentSection = section.getSection("argument");
-			
-			if(argumentSection == null)
-				throw new CustomCommandParseException("In command '" + rootName + "', the argument '" + name + "' doesn't specify an argument declaration (The 'argument' section is missing)");
-			
-			var selectionType = argumentSection.getEnum("type", ArgumentSelectionType.class);
-			
-			if(selectionType == null)
-				throw new CustomCommandParseException("In command '" + rootName + "', the argument '" + name + "' doesn't specify an argument selection type (The 'argument.type' field is missing)");
-			
-			com.mojang.brigadier.arguments.ArgumentType<?> argumentType = null;
-			
-			if(selectionType == ArgumentSelectionType.PRESET) {
-				var preset = argumentSection.getEnum("preset", ArgumentPreset.class);
-				
-				if(preset == null)
-					throw new CustomCommandParseException("In command '" + rootName + "', the argument '" + name + "' doesn't specify a preset even though the argument selection type is PRESET (The 'argument.preset' field is missing)");
-				
-				argumentType = preset.argumentType(argumentSection);
-			}
-			
-			if(argumentType == null)
-				throw new CustomCommandParseException("In command '" + rootName + "', the argument type of the argument '" + name + "' couldn't be resolved");
-			
-			var argument = Arg.of(name, argumentType);
-			
-			//TODO custom arguments
-			
-			var suggestsSection = section.getSection("suggests");
-			if(suggestsSection != null)
-				SuggestionTranslator.addSuggestions(argument, suggestsSection, rootName, name);
-			
-			argumentBuilder = argument;
-		}
+		ArgumentBuilder<CommandSourceStack, ?> argumentBuilder = commandComponentType.getAction().apply(null, section, context);
 		
 		var executesSection = section.getSection("executes");
 		if(executesSection != null)
-			ExecutionTranslator.addExecution(argumentBuilder, executesSection, rootName, name);
+			ExecutionType.addExecution(argumentBuilder, executesSection, context.withSection("executes"));
 		
 		var requiresSection = section.getSection("requires");
 		if(requiresSection != null)
-			RequirementTranslator.addRequirement(argumentBuilder, requiresSection, rootName, name);
+			RequirementType.addRequirement(argumentBuilder, requiresSection, context.withSection("requires"));
 		
 		return argumentBuilder;
 	}

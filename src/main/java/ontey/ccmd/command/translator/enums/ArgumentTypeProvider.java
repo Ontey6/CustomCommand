@@ -1,20 +1,20 @@
 package ontey.ccmd.command.translator.enums;
 
 import com.mojang.brigadier.arguments.*;
-import com.mojang.brigadier.arguments.ArgumentType;
 import io.papermc.paper.command.brigadier.argument.ArgumentTypes;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import ontey.api.config.ConfigSection;
 
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 @AllArgsConstructor
-public enum ArgumentPreset {
-	WORD(_ -> StringArgumentType.word()),
-	STRING(_ -> StringArgumentType.string()),
-	VARARGS_STRING(_ -> StringArgumentType.greedyString()),
-	BOOLEAN(_ -> BoolArgumentType.bool()),
+public enum ArgumentTypeProvider {
+	WORD(StringArgumentType::word),
+	STRING(StringArgumentType::string),
+	VARARGS_STRING(StringArgumentType::greedyString),
+	BOOLEAN(BoolArgumentType::bool),
 	INTEGER(section -> {
 		if(section.contains("min")) {
 			int min = section.getInt("min", Integer.MIN_VALUE);
@@ -63,51 +63,58 @@ public enum ArgumentPreset {
 			return DoubleArgumentType.doubleArg();
 		}
 	}),
-	ENTITY(_ -> ArgumentTypes.entity()),
-	ENTITIES(_ -> ArgumentTypes.entities()),
-	PLAYER(_ -> ArgumentTypes.player()),
-	PLAYERS(_ -> ArgumentTypes.players()),
-	PLAYER_PROFILES(_ -> ArgumentTypes.playerProfiles()),
-	BLOCK_POSITION(_ -> ArgumentTypes.blockPosition()),
-	COLUMN_BLOCK_POSITION(_ -> ArgumentTypes.columnBlockPosition()),
-	BLOCK_IN_WORLD_PREDICATE(_ -> ArgumentTypes.blockInWorldPredicate()),
+	ENTITY(ArgumentTypes::entity),
+	ENTITIES(ArgumentTypes::entities),
+	PLAYER(ArgumentTypes::player),
+	PLAYERS(ArgumentTypes::players),
+	PLAYER_PROFILES(ArgumentTypes::playerProfiles),
+	BLOCK_POSITION(ArgumentTypes::blockPosition),
+	COLUMN_BLOCK_POSITION(ArgumentTypes::columnBlockPosition),
+	BLOCK_IN_WORLD_PREDICATE(ArgumentTypes::blockInWorldPredicate),
 	FINE_POSITION(section -> ArgumentTypes.finePosition(section.getBoolean("center-integers", false))),
 	COLUMN_FINE_POSITION(section -> ArgumentTypes.columnFinePosition(section.getBoolean("center-integers", false))),
-	ROTATION(_ -> ArgumentTypes.rotation()),
-	ANGLE(_ -> ArgumentTypes.angle()),
-	AXES(_ -> ArgumentTypes.axes()),
-	BLOCK_STATE(_ -> ArgumentTypes.blockState()),
-	ITEM_STACK(_ -> ArgumentTypes.itemStack()),
-	ITEM_PREDICATE(_ -> ArgumentTypes.itemPredicate()),
-	NAMED_COLOR(_ -> ArgumentTypes.namedColor()),
-	HEX_COLOR(_ -> ArgumentTypes.hexColor()),
-	COMPONENT(_ -> ArgumentTypes.component()),
-	STYLE(_ -> ArgumentTypes.style()),
-	SIGNED_MESSAGE(_ -> ArgumentTypes.signedMessage()),
-	SCOREBOARD_DISPLAY_SLOT(_ -> ArgumentTypes.scoreboardDisplaySlot()),
-	NAMESPACED_KEY(_ -> ArgumentTypes.namespacedKey()),
-	KEY(_ -> ArgumentTypes.key()),
-	INTEGER_RANGE(_ -> ArgumentTypes.integerRange()),
-	DOUBLE_RANGE(_ -> ArgumentTypes.doubleRange()),
-	WORLD(_ -> ArgumentTypes.world()),
-	GAME_MODE(_ -> ArgumentTypes.gameMode()),
-	HEIGHT_MAP(_ -> ArgumentTypes.heightMap()),
-	UUID(_ -> ArgumentTypes.uuid()),
-	OBJECTIVE_CRITERIA(_ -> ArgumentTypes.objectiveCriteria()),
-	ENTITY_ANCHOR(_ -> ArgumentTypes.entityAnchor()),
+	ROTATION(ArgumentTypes::rotation),
+	ANGLE(ArgumentTypes::angle),
+	AXES(ArgumentTypes::axes),
+	BLOCK_STATE(ArgumentTypes::blockState),
+	ITEM_STACK(ArgumentTypes::itemStack),
+	ITEM_PREDICATE(ArgumentTypes::itemPredicate),
+	NAMED_COLOR(ArgumentTypes::namedColor),
+	HEX_COLOR(ArgumentTypes::hexColor),
+	COMPONENT(ArgumentTypes::component),
+	STYLE(ArgumentTypes::style),
+	SIGNED_MESSAGE(ArgumentTypes::signedMessage),
+	SCOREBOARD_DISPLAY_SLOT(ArgumentTypes::scoreboardDisplaySlot),
+	NAMESPACED_KEY(ArgumentTypes::namespacedKey),
+	KEY(ArgumentTypes::key),
+	INTEGER_RANGE(ArgumentTypes::integerRange),
+	DOUBLE_RANGE(ArgumentTypes::doubleRange),
+	WORLD(ArgumentTypes::world),
+	GAME_MODE(ArgumentTypes::gameMode),
+	HEIGHT_MAP(ArgumentTypes::heightMap),
+	UUID(ArgumentTypes::uuid),
+	OBJECTIVE_CRITERIA(ArgumentTypes::objectiveCriteria),
+	ENTITY_ANCHOR(ArgumentTypes::entityAnchor),
 	TIME(section -> ArgumentTypes.time(section.getInt("min-time", 0))),
-	TEMPLATE_MIRROR(_ -> ArgumentTypes.templateMirror()),
-	TEMPLATE_ROTATION(_ -> ArgumentTypes.templateRotation()),
+	TEMPLATE_MIRROR(ArgumentTypes::templateMirror),
+	TEMPLATE_ROTATION(ArgumentTypes::templateRotation),
 	// too complex, would require a whole system
 	//RESOURCE(section -> ),
 	//RESOURCE_KEY(section -> ),
-	;
+	CUSTOM(section -> {
+		//TODO custom arguments
+		throw new UnsupportedOperationException("Custom arguments are not yet supported");
+	});
 	
 	@NonNull
 	private final Function<ConfigSection, ArgumentType<?>> typeFunction;
 	
+	ArgumentTypeProvider(Supplier<ArgumentType<?>> typeSupplier) {
+		this.typeFunction = _ -> typeSupplier.get();
+	}
+	
 	@NonNull
-	public ArgumentType<?> argumentType(@NonNull ConfigSection section) {
-		return typeFunction.apply(section);
+	public ArgumentType<?> argumentType(@NonNull ConfigSection argumentSection) {
+		return typeFunction.apply(argumentSection);
 	}
 }

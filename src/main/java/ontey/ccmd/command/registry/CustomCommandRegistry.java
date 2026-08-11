@@ -45,7 +45,7 @@ public final class CustomCommandRegistry {
 			Set<String> registeredCommandsCache = new HashSet<>();
 			
 			CommandRegistry registry = new CommandRegistry(context.getLifecycleManager());
-			FileLog fileLog = new FileLog("CustomCommand", context.getDataDirectory().toFile());
+			FileLog fileLog = new FileLog(context.getLogger(), context.getDataDirectory().toFile());
 			
 			for(var cmd : getCommands(context, fileLog)) {
 				if(!registeredCommandsCache.add(cmd.getName())) {

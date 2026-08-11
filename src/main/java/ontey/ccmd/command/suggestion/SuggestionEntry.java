@@ -14,8 +14,6 @@ import java.util.Map;
 @AutoRegistered
 public interface SuggestionEntry extends ConfigSerializable {
 	
-	void suggestIn(@NonNull SuggestionsBuilder builder, @Nullable String input);
-	
 	@Nullable
 	static SuggestionEntry deserialize(@NonNull Map<String, Object> map) {
 		Object value = map.get("value");
@@ -67,4 +65,6 @@ public interface SuggestionEntry extends ConfigSerializable {
 	static SuggestionEntry integer(int integer) {
 		return new IntegerSuggestionEntry(integer, null);
 	}
+	
+	void suggestIn(@NonNull SuggestionsBuilder builder, @Nullable String input);
 }

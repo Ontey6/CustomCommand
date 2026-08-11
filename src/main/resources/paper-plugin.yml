@@ -5,3 +5,9 @@ api-version: '1.21'
 authors: [ Ontey ]
 loader: ontey.ccmd.CustomCommandLoader
 bootstrapper: ontey.ccmd.CustomCommandBootstrapper
+
+dependencies:
+  server:
+    PlaceholderAPI:
+      load: OMIT
+      required: false

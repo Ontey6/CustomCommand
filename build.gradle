@@ -1,69 +1,84 @@
 plugins {
-    id "java"
-    id("com.gradleup.shadow") version "9.3.0"
-    id("io.papermc.paperweight.userdev") version "2.0.0-beta.21"
+   id "java"
+   id("com.gradleup.shadow") version "9.6.1"
+   id("io.papermc.paperweight.userdev") version "2.0.0-beta.21"
 }
 
 group = "com.ontey"
 version = "2.2-alpha"
 
 repositories {
-    mavenCentral()
+   mavenCentral()
 
-    maven {
-        name = "papermc-repo"
-        url = "https://repo.papermc.io/repository/maven-public/"
-    }
+   maven {
+      name = "papermc-repo"
+      url = "https://repo.papermc.io/repository/maven-public/"
+   }
 
-    maven {
-        url = "https://jitpack.io"
-    }
+   maven {
+      url = "https://jitpack.io"
+   }
+
+   maven {
+      url = "https://repo.extendedclip.com/releases/"
+   }
 }
 
 tasks.shadowJar {
-    relocate("ontey.api", "relocated.ccmd.ontey.api")
+   relocate("ontey.api", "relocated.ccmd.ontey.api")
+   relocate("org.bstats", "relocated.ccmd.org.bstats")
 
-    archiveFileName = "CustomCommand-${version}.jar"
-    destinationDirectory = file("C:\\Users\\klett\\Documents\\Minecraft\\Servers\\TestServer\\plugins")
+   archiveFileName = "CustomCommand-${version}.jar"
+   destinationDirectory = file("C:\\Users\\klett\\Documents\\Minecraft\\Servers\\TestServer\\plugins")
 }
 
 dependencies {
-    paperweight.paperDevBundle("26.1.2.build.+")
+   paperweight.paperDevBundle("26.1.2.build.+")
 
-    // OnteyAPI
-    implementation("com.github.Ontey6.OnteyAPI:paper:2.2.2:all")
+   // OnteyAPI
+   implementation("com.github.Ontey6.OnteyAPI:paper:2.3:all")
 
-    compileOnly("org.graalvm.js:js-language:25.0.3")
-    compileOnly("org.graalvm.sdk:graal-sdk:25.0.3")
+   // GraalJS
+   compileOnly("org.graalvm.js:js-language:25.0.3")
+   compileOnly("org.graalvm.sdk:graal-sdk:25.0.3")
 
-    // lombok
-    compileOnly("org.projectlombok:lombok:1.18.42")
-    annotationProcessor("org.projectlombok:lombok:1.18.42")
+   // lombok
+   compileOnly("org.projectlombok:lombok:1.18.42")
+   annotationProcessor("org.projectlombok:lombok:1.18.42")
+
+   // PlaceholderAPI
+   compileOnly("me.clip:placeholderapi:2.12.3")
+
+   // MiniPlaceholders
+   compileOnly("io.github.miniplaceholders:miniplaceholders-api:3.2.0")
+
+   // bStats
+   implementation("org.bstats:bstats-bukkit:3.2.1")
 }
 
 def targetJavaVersion = 25
 java {
-    def javaVersion = JavaVersion.toVersion(targetJavaVersion)
-    sourceCompatibility = javaVersion
-    targetCompatibility = javaVersion
-    if (JavaVersion.current() < javaVersion) {
-        toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
-    }
+   def javaVersion = JavaVersion.toVersion(targetJavaVersion)
+   sourceCompatibility = javaVersion
+   targetCompatibility = javaVersion
+   if (JavaVersion.current() < javaVersion) {
+      toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
+   }
 }
 
 tasks.withType(JavaCompile).configureEach {
-    options.encoding = "UTF-8"
+   options.encoding = "UTF-8"
 
-    if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
-        options.release.set(targetJavaVersion)
-    }
+   if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
+      options.release.set(targetJavaVersion)
+   }
 }
 
 processResources {
-    def props = [version: version]
-    inputs.properties props
-    filteringCharset "UTF-8"
-    filesMatching("paper-plugin.yml") {
-        expand props
-    }
+   def props = [version: version]
+   inputs.properties props
+   filteringCharset "UTF-8"
+   filesMatching("paper-plugin.yml") {
+      expand props
+   }
 }

@@ -14,17 +14,6 @@ import java.util.List;
 @AllArgsConstructor
 public class CommandSection {
 	
-	protected CommandSection(@NonNull String name, @NonNull ArgumentBuilder<CommandSourceStack, ?> argumentBuilder, @NonNull List<@NonNull CommandSection> children) {
-		if(!(this instanceof CustomCommand cmd))
-			throw new IllegalArgumentException("Root CommandSections must implement CustomCommand");
-		
-		this.name = name;
-		this.argumentBuilder = argumentBuilder;
-		this.children = children;
-		this.root = cmd;
-		this.parent = null;
-	}
-	
 	@NonNull
 	@Getter
 	private final String name;
@@ -44,6 +33,17 @@ public class CommandSection {
 	@NonNull
 	@Getter
 	private final List<@NonNull CommandSection> children;
+	
+	protected CommandSection(@NonNull String name, @NonNull ArgumentBuilder<CommandSourceStack, ?> argumentBuilder, @NonNull List<@NonNull CommandSection> children) {
+		if(!(this instanceof CustomCommand cmd))
+			throw new IllegalArgumentException("Root CommandSections must implement CustomCommand");
+		
+		this.name = name;
+		this.argumentBuilder = argumentBuilder;
+		this.children = children;
+		this.root = cmd;
+		this.parent = null;
+	}
 	
 	@NonNull
 	@Contract(pure = true, value = "_, _ -> new")
