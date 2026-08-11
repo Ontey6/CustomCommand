@@ -35,7 +35,6 @@ public final class Main extends OnteyPlugin {
 	private void registerMetrics() {
 		Metrics metrics = new Metrics(this, BSTATS_METRICS_ID);
 		
-		// Optional: Add custom charts
 		metrics.addCustomChart(
 		  new SimplePie("registered_command_count", () -> {
 			  int size = CustomCommandRegistry.getRegisteredCommands().size();

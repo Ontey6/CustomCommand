@@ -1,5 +1,5 @@
 name: CustomCommand
-version: 'auto-filled'
+version: '2.3'
 main: ontey.ccmd.Main
 api-version: '1.21'
 authors: [ Ontey ]
