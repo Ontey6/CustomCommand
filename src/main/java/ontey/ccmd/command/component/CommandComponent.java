@@ -21,20 +21,8 @@ public sealed interface CommandComponent permits LiteralCommandComponent, Argume
 	@Nullable
 	Requirement requirement();
 	
-	/// @return This component's prefix
-	
-	@NonNull
-	String prefix();
-	
 	/// @return This component's name
 	
 	@NonNull
 	String name();
-	
-	/// @return The name formatted like in the YAML (`literal:name` or `argument:name`)
-	
-	@NonNull
-	default String serializationName() {
-		return prefix() + name();
-	}
 }

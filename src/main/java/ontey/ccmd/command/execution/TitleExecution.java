@@ -39,11 +39,6 @@ public record TitleExecution(@NonNull String title, @Nullable String subtitle, @
 	}
 	
 	@Override
-	public @NonNull String path() {
-		return "title";
-	}
-	
-	@Override
 	public @NotNull Map<String, Object> serialize() {
 		var titleMap = new java.util.HashMap<>(Map.of(
 		  "title", title,
@@ -55,7 +50,7 @@ public record TitleExecution(@NonNull String title, @Nullable String subtitle, @
 			titleMap.put("subtitle", subtitle);
 		
 		return Map.of(
-		  "type", "TITLE",
+		  "type", "title",
 		  "title", titleMap
 		);
 	}

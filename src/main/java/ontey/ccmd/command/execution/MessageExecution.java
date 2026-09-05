@@ -42,14 +42,9 @@ public record MessageExecution(@NonNull String message, boolean broadcast) imple
 	}
 	
 	@Override
-	public @NonNull String path() {
-		return "message";
-	}
-	
-	@Override
 	public @NotNull Map<String, Object> serialize() {
 		return Map.of(
-		  "type", "MESSAGE",
+		  "type", "message",
 		  "message", Map.of(
 			 "message", message,
 			 "broadcast", broadcast

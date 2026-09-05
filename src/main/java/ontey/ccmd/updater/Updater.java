@@ -87,6 +87,7 @@ public class Updater implements Listener {
 	@EventHandler
 	public void onJoin(PlayerJoinEvent event) {
 		if(event.getPlayer().isOp() && latest != null)
+			//noinspection DataFlowIssue
 			event.getPlayer().sendMessage(latest.getUpdaterMessage());
 	}
 }

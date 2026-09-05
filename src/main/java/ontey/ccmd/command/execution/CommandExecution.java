@@ -65,14 +65,9 @@ public record CommandExecution(@NonNull List<@NonNull String> commands, boolean 
 	}
 	
 	@Override
-	public @NonNull String path() {
-		return "commands";
-	}
-	
-	@Override
 	public @NotNull Map<String, Object> serialize() {
 		return Map.of(
-		  "type", "COMMANDS",
+		  "type", "command",
 		  "command", Map.of(
 			 "commands", commands,
 			 "run-as-console", runAsConsole,

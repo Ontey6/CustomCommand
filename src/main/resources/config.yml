@@ -1,3 +1,1 @@
-auto-command-migration:
-  enabled: false
-  last-registered-version: '2.4'
+last-known-version: '2.4'

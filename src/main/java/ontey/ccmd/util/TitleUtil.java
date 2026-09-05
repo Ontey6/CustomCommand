@@ -3,7 +3,6 @@ package ontey.ccmd.util;
 import lombok.NonNull;
 import net.kyori.adventure.title.Title;
 import net.kyori.adventure.title.TitlePart;
-import ontey.api.config.ConfigSection;
 import ontey.ccmd.command.context.ParseContext;
 import ontey.ccmd.format.Formatter;
 import org.bukkit.entity.Player;
@@ -19,20 +18,6 @@ public final class TitleUtil {
 		if(rawSubtitle != null)
 			player.sendTitlePart(TitlePart.SUBTITLE, Formatter.format(rawSubtitle, player));
 		player.sendTitlePart(TitlePart.TIMES, times);
-	}
-	
-	@NonNull
-	public static Title.Times getTimes(@NonNull ConfigSection argumentSection, ParseContext context) {
-		var timesSection = argumentSection.getSection("times");
-		
-		if(timesSection == null)
-			return Title.DEFAULT_TIMES;
-		
-		var fadeIn = getDuration(timesSection.getString("fade-in"), "fade-in", context);
-		var stay = getDuration(timesSection.getString("stay"), "stay", context);
-		var fadeOut = getDuration(timesSection.getString("fade-out"), "fade-out", context);
-		
-		return Title.Times.times(fadeIn, stay, fadeOut);
 	}
 	
 	public static Title.Times getTimes(@NonNull String fadeIn, @NonNull String stay, @NonNull String fadeOut, ParseContext context) {

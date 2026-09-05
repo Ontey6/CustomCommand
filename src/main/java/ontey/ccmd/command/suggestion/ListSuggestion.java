@@ -19,10 +19,6 @@ public record ListSuggestion(List<? extends SuggestionEntry> suggestions, boolea
 		return suggestions;
 	}
 	
-	public @NonNull List<? extends @NonNull SuggestionEntry> parseSuggestions() {
-		return suggestions;
-	}
-	
 	@Override
 	public @NotNull Map<String, Object> serialize() {
 		return Map.of(

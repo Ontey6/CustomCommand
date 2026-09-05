@@ -33,19 +33,10 @@ import static ontey.ccmd.shared.SharedConstants.logger;
 public final class CustomCommandRegistry {
 	
 	@NonNull
-	private static final Map<@NonNull CustomCommand, @NonNull CustomCommandNode> registeredCommands = new HashMap<>();
+	private static final List<CustomCommandNode> registeredCommands = new ArrayList<>();
 	
-	@NonNull
-	public static Map<@NonNull CustomCommand, @NonNull CustomCommandNode> getRegisteredCommands() {
-		return Map.copyOf(registeredCommands);
-	}
-	
-	public static Set<CustomCommand> getRegisteredCustomCommands() {
-		return Set.copyOf(registeredCommands.keySet());
-	}
-	
-	public static List<CustomCommandNode> getRegisteredCommandNodes() {
-		return List.copyOf(registeredCommands.values());
+	public static List<CustomCommandNode> getRegisteredCommands() {
+		return List.copyOf(registeredCommands);
 	}
 	
 	public static void registerCustomCommands(@Nullable LifecycleEventManager<?> lifecycleManager, boolean useNMS) {
@@ -68,7 +59,7 @@ public final class CustomCommandRegistry {
 				
 				var root = cmd.build(parseContext);
 				
-				registeredCommands.put(cmd, root);
+				registeredCommands.add(root);
 			}
 			
 			if(useNMS) {
@@ -76,13 +67,13 @@ public final class CustomCommandRegistry {
 				var dispatcher = commands.getDispatcher();
 				var rootNode = dispatcher.getRoot();
 				
-				for(var command : registeredCommands.values())
+				for(var command : registeredCommands)
 					rootNode.addChild((LiteralCommandNode) command);
 				
 				rootNode.addChild((LiteralCommandNode) new CustomCommandCommand().build().root());
 			} else {
 				lifecycleManager.registerEventHandler(LifecycleEvents.COMMANDS, event -> {
-					for(var command : registeredCommands.values())
+					for(var command : registeredCommands)
 						event.registrar().register(command);
 					
 					event.registrar().register(new CustomCommandCommand().build().root());
@@ -108,7 +99,7 @@ public final class CustomCommandRegistry {
 	///
 	
 	public static void reloadCommands() {
-		List<CustomCommandNode> oldCommands = new ArrayList<>(registeredCommands.size());
+		List<CustomCommandNode> oldCommands = new ArrayList<>(registeredCommands.size()); //TODO add changes system to show what commands were changed
 		var commands = ((CraftServer) Bukkit.getServer()).getServer().getCommands();
 		var dispatcher = commands.getDispatcher();
 		var rootNode = dispatcher.getRoot();
@@ -222,7 +213,7 @@ public final class CustomCommandRegistry {
 			CustomCommand cmd;
 			
 			try {
-				cmd = CustomCommandParser.parseYaml(section, file);
+				cmd = CustomCommandParser.parseYaml(section);
 			} catch(ParseException e) {
 				// DO NOT CHANGE 'this command' TO 'it'. IT CHANGES CONTEXT.
 				logger.warn("Encountered an exception while parsing command '{}' in file '{}'. Skipping this command.", name, file.getName());

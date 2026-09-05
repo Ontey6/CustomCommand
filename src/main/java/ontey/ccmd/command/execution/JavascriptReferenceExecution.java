@@ -19,14 +19,9 @@ public record JavascriptReferenceExecution(@NonNull String javascriptFile) imple
 	}
 	
 	@Override
-	public @NonNull String path() {
-		return "javascript-reference";
-	}
-	
-	@Override
 	public @NotNull Map<String, Object> serialize() {
 		return Map.of(
-		  "type", "JAVASCRIPT_REFERENCE",
+		  "type", "javascript_reference",
 		  "javascript-file", javascriptFile
 		);
 	}

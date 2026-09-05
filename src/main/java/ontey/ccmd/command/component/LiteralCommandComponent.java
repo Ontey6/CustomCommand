@@ -13,8 +13,4 @@ public record LiteralCommandComponent(
   @Nullable Requirement requirement
 ) implements CommandComponent {
 	
-	@Override
-	public @NonNull String prefix() {
-		return "literal:";
-	}
 }

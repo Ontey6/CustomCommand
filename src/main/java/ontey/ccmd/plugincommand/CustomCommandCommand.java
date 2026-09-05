@@ -11,6 +11,7 @@ import ontey.api.command.argument.Arg;
 import ontey.api.loader.AutoRegistered;
 import ontey.ccmd.command.CommandSectionLike;
 import ontey.ccmd.command.CustomCommand;
+import ontey.ccmd.command.CustomCommandNode;
 import ontey.ccmd.command.registry.CustomCommandRegistry;
 import ontey.ccmd.updater.Updater;
 import org.bukkit.command.CommandSender;
@@ -105,7 +106,8 @@ public class CustomCommandCommand extends Command {
 		return ctx -> {
 			var sender = ctx.getSource().getSender();
 			
-			for(var command : CustomCommandRegistry.getRegisteredCustomCommands()) {
+			for(var commandNode : CustomCommandRegistry.getRegisteredCommands()) {
+				var command = commandNode.getCustomCommand();
 				var values = command.values();
 				var description = values.description();
 				var permission = values.permission();
@@ -160,7 +162,7 @@ public class CustomCommandCommand extends Command {
 			  throw Arg.simpleException("No command or command section specified");
 		  });
 		
-		addCommandsNodes(base, new ArrayList<>(CustomCommandRegistry.getRegisteredCustomCommands()));
+		addCommandsNodes(base, new ArrayList<>(CustomCommandRegistry.getRegisteredCommands().stream().map(CustomCommandNode::getCustomCommand).toList()));
 		
 		return base;
 	}
@@ -243,7 +245,7 @@ public class CustomCommandCommand extends Command {
 			  throw Arg.simpleException("No command or command section specified");
 		  });
 		
-		addHelpNodes(base, new ArrayList<>(CustomCommandRegistry.getRegisteredCustomCommands()));
+		addHelpNodes(base, new ArrayList<>(CustomCommandRegistry.getRegisteredCommands().stream().map(CustomCommandNode::getCustomCommand).toList()));
 		
 		return base;
 	}

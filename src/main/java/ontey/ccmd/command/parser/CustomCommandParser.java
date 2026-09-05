@@ -9,7 +9,6 @@ import ontey.ccmd.command.component.CommandComponents;
 import ontey.ccmd.command.component.LiteralCommandComponent;
 import ontey.ccmd.command.context.ParseContext;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -20,7 +19,7 @@ public class CustomCommandParser {
 	///
 	/// @param baseSection The command's section
 	
-	public static CustomCommand parseYaml(ConfigSection baseSection, File file) {
+	public static CustomCommand parseYaml(ConfigSection baseSection) {
 		CommandConfig values = createCommandConfig(baseSection, 0);
 		var context = new ParseContext(values.name(), true);
 		

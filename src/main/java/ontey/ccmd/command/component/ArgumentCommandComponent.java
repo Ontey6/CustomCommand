@@ -17,8 +17,4 @@ public record ArgumentCommandComponent(
   @NonNull ArgumentType<?> argumentType
 ) implements CommandComponent {
 	
-	@Override
-	public @NonNull String prefix() {
-		return "argument:";
-	}
 }

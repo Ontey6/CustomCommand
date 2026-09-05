@@ -12,9 +12,4 @@ public interface Execution extends CombinedConfigSerializable {
 	
 	@NonNull
 	Command<CommandSourceStack> parseExecution(@NonNull ParseContext context);
-	
-	/// @return The name of the section/field in the base section that this component is located
-	
-	@NonNull
-	String path();
 }

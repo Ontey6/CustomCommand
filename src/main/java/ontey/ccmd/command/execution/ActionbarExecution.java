@@ -40,14 +40,9 @@ public record ActionbarExecution(@NonNull String actionbar, boolean broadcast) i
 	}
 	
 	@Override
-	public @NonNull String path() {
-		return "actionbar";
-	}
-	
-	@Override
 	public @NotNull Map<String, Object> serialize() {
 		return Map.of(
-		  "type", "ACTIONBAR",
+		  "type", "actionbar",
 		  "actionbar", Map.of(
 			 "actionbar", actionbar,
 			 "broadcast", broadcast

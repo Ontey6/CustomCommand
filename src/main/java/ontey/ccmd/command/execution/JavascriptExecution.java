@@ -16,14 +16,9 @@ public record JavascriptExecution(@NonNull String javascript) implements Executi
 	}
 	
 	@Override
-	public @NonNull String path() {
-		return "javascript";
-	}
-	
-	@Override
 	public @NotNull Map<String, Object> serialize() {
 		return Map.of(
-		  "type", "JAVASCRIPT",
+		  "type", "javascript",
 		  "javascript", javascript
 		);
 	}

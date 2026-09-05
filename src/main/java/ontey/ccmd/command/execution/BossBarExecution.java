@@ -73,14 +73,9 @@ public record BossBarExecution(@NonNull String name, float progress, @NonNull Bo
 	}
 	
 	@Override
-	public @NonNull String path() {
-		return "boss-bar";
-	}
-	
-	@Override
 	public @NotNull Map<String, Object> serialize() {
 		return Map.of(
-		  "type", "BOSS_BAR",
+		  "type", "boss_bar",
 		  "boss-bar", Map.of(
 			 "name", name,
 			 "progress", progress,
