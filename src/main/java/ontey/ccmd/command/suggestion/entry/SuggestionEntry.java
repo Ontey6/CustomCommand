@@ -1,31 +1,29 @@
-package ontey.ccmd.command.suggestion;
+package ontey.ccmd.command.suggestion.entry;
 
-import com.mojang.brigadier.LiteralMessage;
-import com.mojang.brigadier.Message;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import lombok.NonNull;
-import ontey.api.config.serialization.ConfigSerializable;
 import ontey.api.loader.AutoRegistered;
+import ontey.api.serialization.CombinedConfigSerializable;
 import org.graalvm.polyglot.HostAccess;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
 @AutoRegistered
-public interface SuggestionEntry extends ConfigSerializable {
+public interface SuggestionEntry extends CombinedConfigSerializable {
 	
 	@Nullable
 	static SuggestionEntry deserialize(@NonNull Map<String, Object> map) {
-		Object value = map.get("value");
+		Object value = map.get("integer");
 		
 		if(value == null)
 			return null;
 		
 		Object rawTooltip = map.get("tooltip");
-		Message tooltip = null;
+		String tooltip = null;
 		
 		if(rawTooltip instanceof String str)
-			tooltip = new LiteralMessage(str);
+			tooltip = str;
 		
 		if(value instanceof Integer i)
 			return new IntegerSuggestionEntry(i, tooltip);
@@ -47,7 +45,7 @@ public interface SuggestionEntry extends ConfigSerializable {
 	
 	@NonNull
 	static SuggestionEntry string(@NonNull String string, @Nullable String tooltip) {
-		return new StringSuggestionEntry(string, new LiteralMessage(tooltip));
+		return new StringSuggestionEntry(string, tooltip);
 	}
 	
 	@NonNull
@@ -58,7 +56,7 @@ public interface SuggestionEntry extends ConfigSerializable {
 	@NonNull
 	@HostAccess.Export
 	static SuggestionEntry integer(int integer, @Nullable String tooltip) {
-		return new IntegerSuggestionEntry(integer, new LiteralMessage(tooltip));
+		return new IntegerSuggestionEntry(integer, tooltip);
 	}
 	
 	@NonNull
@@ -67,4 +65,14 @@ public interface SuggestionEntry extends ConfigSerializable {
 	}
 	
 	void suggestIn(@NonNull SuggestionsBuilder builder, @Nullable String input);
+	
+	/// @return The integer of this suggestion. Either an `int` or a [String]
+	
+	@NonNull
+	Object value();
+	
+	/// @return The optional tooltip of this suggestion
+	
+	@Nullable
+	String tooltip();
 }

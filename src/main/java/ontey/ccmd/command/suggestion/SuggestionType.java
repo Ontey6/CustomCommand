@@ -1,6 +1,6 @@
-package ontey.ccmd.command.translator.enums;
+package ontey.ccmd.command.suggestion;
 
-import com.mojang.brigadier.builder.RequiredArgumentBuilder;
+import com.mojang.brigadier.suggestion.SuggestionProvider;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -8,18 +8,17 @@ import ontey.api.config.ConfigSection;
 import ontey.api.javascript.JavaScriptException;
 import ontey.api.javascript.Javascript;
 import ontey.ccmd.command.context.ParseContext;
-import ontey.ccmd.command.suggestion.SuggestionEntry;
+import ontey.ccmd.command.suggestion.entry.SuggestionEntry;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import static ontey.ccmd.util.JavascriptUtil.*;
 
 @AllArgsConstructor
 public enum SuggestionType {
-	LIST((builder, section, context) -> {
+	LIST((context, section) -> {
 		List<?> rawSuggestions = section.getList("list");
 		
 		if(rawSuggestions == null)
@@ -35,23 +34,23 @@ public enum SuggestionType {
 		
 		boolean dynamicSuggestions = section.getBoolean("dynamic");
 		
-		builder.suggests((_, suggestionsBuilder) -> {
+		return (_, suggestionsBuilder) -> {
 			var remaining = suggestionsBuilder.getRemainingLowerCase();
 			for(var suggestion : suggestions)
 				suggestion.suggestIn(suggestionsBuilder, dynamicSuggestions ? remaining : null);
 			
 			return suggestionsBuilder.buildFuture();
-		});
+		};
 	}),
-	JAVASCRIPT((builder, section, context) -> {
+	JAVASCRIPT((context, section) -> {
 		var code = section.getString("javascript");
 		
 		if(code == null)
 			throw context.newException("Specifies the JAVASCRIPT suggestion type, but doesn't specify a javascript String ('suggests.javascript' is not set)");
 		
-		addJavascript(builder, code, context);
+		return parseJavascript(code, context);
 	}),
-	JAVASCRIPT_REFERENCE((builder, section, context) -> {
+	JAVASCRIPT_REFERENCE((context, section) -> {
 		String filename = section.getString("javascript-file");
 		
 		if(filename == null)
@@ -59,31 +58,27 @@ public enum SuggestionType {
 		
 		String code = getFileContents(context, filename);
 		
-		addJavascript(builder, code, context);
+		return parseJavascript(code, context);
 	});
 	
 	@Getter
-	private final SuggestionAddition action;
+	private final SuggestionsParser action;
 	
-	public static void addSuggestions(RequiredArgumentBuilder<CommandSourceStack, ?> builder, ConfigSection section, ParseContext context) {
+	public static SuggestionProvider<CommandSourceStack> parseSuggestions(ParseContext context, ConfigSection section) {
 		var suggestionType = section.getEnum("type", SuggestionType.class);
 		
 		if(suggestionType == null)
 			throw context.newException("Doesn't specify a valid type ('suggests.type' is either not set or invalid)");
 		
-		suggestionType.action.addTo(builder, section, context);
+		return suggestionType.action.parseSuggestions(context, section);
 	}
 	
-	private static void addJavascript(RequiredArgumentBuilder<CommandSourceStack, ?> builder, String code, ParseContext context) {
-		Javascript javascript = createBaseJavascript();
+	private static SuggestionProvider<CommandSourceStack> parseJavascript(String code, ParseContext context) {
 		
-		builder.suggests((ctx, suggestionsBuilder) -> {
+		return (ctx, suggestionsBuilder) -> {
+			Javascript javascript = createBaseJavascript();
 			addContextToJavascript(ctx, javascript);
 			addSuggestionsToJavascript(suggestionsBuilder, javascript);
-			javascript
-			  .addClass(SuggestionEntry.class)
-			  .addVariable("stringSuggestion", (BiFunction<String, String, SuggestionEntry>) SuggestionEntry::string)
-			  .addVariable("integerSuggestion", (BiFunction<Integer, String, SuggestionEntry>) SuggestionEntry::integer);
 			
 			try {
 				var function = (Function<Object[], Object>) javascript.eval(code);
@@ -108,12 +103,11 @@ public enum SuggestionType {
 			} catch(ClassCastException e) {
 				throw context.newException("The javascript doesn't return the right type (It should be an arrow function returning a list like '() => [1, 2, 3, \"Hello World\"]')", e);
 			}
-		});
+		};
 	}
 	
-	@FunctionalInterface
-	public interface SuggestionAddition {
+	public interface SuggestionsParser {
 		
-		void addTo(RequiredArgumentBuilder<CommandSourceStack, ?> builder, ConfigSection section, ParseContext context);
+		SuggestionProvider<CommandSourceStack> parseSuggestions(ParseContext context, ConfigSection requiresSection);
 	}
 }

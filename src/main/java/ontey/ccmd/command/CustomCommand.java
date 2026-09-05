@@ -1,38 +1,25 @@
 package ontey.ccmd.command;
 
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import io.papermc.paper.command.brigadier.CommandSourceStack;
-import lombok.Getter;
+import lombok.Builder;
 import lombok.NonNull;
-import ontey.api.command.Command;
 import ontey.api.command.config.CommandConfig;
+import ontey.api.command.registry.RegistryCommand;
+import ontey.ccmd.command.component.LiteralCommandComponent;
+import ontey.ccmd.command.context.ParseContext;
 
+import java.io.File;
 import java.util.List;
 
-public class CustomCommand extends CommandSection {
+@Builder
+public record CustomCommand(@NonNull CommandConfig values, @NonNull List<CommandSection> children,
+                            @NonNull LiteralCommandComponent component, File file) implements CommandSectionLike {
 	
-	@Getter
-	private final CommandConfig values;
-	
-	public CustomCommand(@NonNull LiteralArgumentBuilder<CommandSourceStack> argumentBuilder, @NonNull List<@NonNull CommandSection> children, @NonNull CommandConfig values) {
-		super(values.name(), argumentBuilder, children);
-		this.values = values;
+	@Override
+	public @NonNull CustomCommandNode build(@NonNull ParseContext context) {
+		return (CustomCommandNode) CommandSectionLike.super.build(context);
 	}
 	
-	@NonNull
-	public String getName() {
-		return values.name();
-	}
-	
-	public Command buildCommand() {
-		return new Command(values.name()) {
-			{
-				aliases = values.aliases();
-				description = values.description();
-				permission = values.permission();
-				consoleOnly = values.consoleOnly();
-				root = (LiteralArgumentBuilder<CommandSourceStack>) getArgumentBuilder();
-			}
-		};
+	public RegistryCommand buildCommand(@NonNull ParseContext context) {
+		return new RegistryCommand(name(), values.aliases(), values().description(), build(context), values::enabled);
 	}
 }

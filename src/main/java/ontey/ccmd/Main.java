@@ -1,10 +1,8 @@
 package ontey.ccmd;
 
 import ontey.api.plugin.OnteyPlugin;
-import ontey.ccmd.command.registry.CustomCommandRegistry;
 import ontey.ccmd.updater.Updater;
 import org.bstats.bukkit.Metrics;
-import org.bstats.charts.SimplePie;
 
 public final class Main extends OnteyPlugin {
 	
@@ -29,22 +27,6 @@ public final class Main extends OnteyPlugin {
 		load();
 		
 		Updater.checkForUpdates();
-		registerMetrics();
-	}
-	
-	private void registerMetrics() {
-		Metrics metrics = new Metrics(this, BSTATS_METRICS_ID);
-		
-		metrics.addCustomChart(
-		  new SimplePie("registered_command_count", () -> {
-			  int size = CustomCommandRegistry.getRegisteredCommands().size();
-			  int value = size - size % 5;
-			  
-			  if(value > 50)
-				  return value + "+";
-			  
-			  return value + "-" + (value + 5);
-		  })
-		);
+		new Metrics(this, BSTATS_METRICS_ID);
 	}
 }

@@ -59,16 +59,3 @@ echo:
     executes:
       type: JAVASCRIPT
       javascript: 'sender.sendMessage("You chose message " + getArgument("message"))'
-
-title-example:
-  then:title:
-    type: ARGUMENT
-    argument:
-      type: PRESET
-      preset: TITLE
-      title: ''
-      subtitle: ''
-      times:
-        fade-in: 0
-        stay: 0
-        fade-out: 0

@@ -1,89 +1,85 @@
-simple-command:
-  description: 'Simple command'
-  permission: 'ccmd.command.simple-command' # The permission that players need to run this command. If none specified, everyone can run the command
-  aliases: [ 'simple-cmd', 's-cmd' ] # Alternative names for the command that function the exact same.
-  then:literal1: # An argument named 'literal1'. The 'then:' prefix indicates that this is an argument
-    # specifying 'type: LITERAL' is optional. If no type is specified, it defaults to literal anyway.
-    type: LITERAL # The type of this argument. here, it's a LITERAL. That is just a word. Example: '/advancement grant' grant is a literal.
-    then:int1:
-      type: ARGUMENT # An ARGUMENT type (complex types like Player selectors, Integers, Strings...) Example: '/attribute @s ...' @s is a player selector argument
-      argument: # The argument declaration
-        type: INTEGER # Specifies an argument type. Choose from a preset. CUSTOM not yet implemented
-        # Some arguments have optional/requried fields that specify extra data. INTEGER has optional min and max fields.
-        min: 1
-        max: 64
-      then:str:
-        type: ARGUMENT
-        argument:
-          type: STRING # Specifies a String argument
-        suggests: # The suggestion declaration. Suggestions were called Tab Completions in Bukkit.
-          type: LIST # Makes this a list. JAVASCRIPT not yet implemented
-          dynamic: true # By default, suggestions stay no matter what you type. When setting this to true, all suggestions that do not start with the player's input will be removed
-          list:
-            - 1 # int suggestion (use if possible, reduces server -> client networking time)
-            - 'Hello' # String suggestion. The default
-            - value: 'Hover me!'    # String suggestion with hover. value can be an int too.
-              tooltip: 'A tooltip!' # The tooltip is shown when the suggestion is hovered
-        # Marks that when this argument is specified last, the command is complete.
-        # When no executes declaration is present, it is assumed that the command can't end on this argument, and an error is shown when executing the command
-        executes:
-          type: JAVASCRIPT
-          javascript: |
-            () => {
-              if(isSenderPlayer)
-                sender.sendMessage("You executed the simple command!")
-              else
-                sender.sendMessage("Only players can run this command!")
-            }
-
-js-suggestions:
-  description: 'Command with JavaScript suggestions'
-  permission: 'ccmd.command.js-suggestions'
-  then:str:
-    type: ARGUMENT
-    argument:
-      type: VARARGS_STRING
-    suggests:
-      type: JAVASCRIPT
-      dynamic: true
-      javascript: |
-        () => {
-          return [
-            "Simple Suggestion",
-            12,
-        
-            integerSuggestion(5, "A tooltip!"),
-            stringSuggestion("Hover me!", "A tooltip!"),
-          ]
-        }
+hello-world:
+  description: 'My first command!'
+  permission: 'ccmd.command.hello-world'
+  executes:
+    type: message
+    message:
+      message: '<green>Hello, World!'
+  literal:broadcast:
+    description: 'Broadcast my first command!'
+    permission: 'ccmd.command.hello-world.broadcast'
     executes:
-      type: JAVASCRIPT
-      javascript: |
-        () => sender.sendMessage("You chose: " + getArgument("str"))
+      type: message
+      message:
+        message: '<green>Hello, World!'
+        broadcast: true
+
+announce-restart:
+  description: 'Announce an incoming restart'
+  permission: 'ccmd.command.announce-restart'
+  executes:
+    type: title
+    title:
+      title: '<red>The server will restart'
+      subtitle: '<red>in 1 minute!'
+      broadcast: true
+
+message:
+  description: 'Message a player'
+  permission: 'ccmd.command.message'
+  argument:target:
+    type: player
+    description: 'The player to send the message to'
+    argument:message:
+      type: varargs_string
+      description: 'The message to be sent'
+      executes:
+        type: javascript_reference
+        javascript-file: message.js
 
 tempban:
   description: 'Temporary ban command'
   permission: 'ccmd.command.tempban'
-  then:targets:
-    type: ARGUMENT
-    argument:
-      type: PLAYER
-    then:time:
-      type: ARGUMENT
+  argument:target:
+    type: PLAYER
+    description: 'The player to be banned'
+    argument:time:
+      type: TIME
+      description: 'The time to ban the player for'
       argument:
-        type: TIME
         min-time: 20 # Optional argument for TIME
       executes:
         type: JAVASCRIPT
         javascript: |
           () => {
             const Duration = Java.type("java.time.Duration")
-            
-            var ticks = getArgument("time")
+            # Shaded/Relocated library, therefore the 'relocated.ccmd' prefix
+            const DurationFormatter = Java.type("relocated.ccmd.ontey.api.util.DurationFormatter")
+          
+            var ticks = args.get("time") // returns the time in ticks
             var duration = Duration.ofMillis(ticks * 50) // 1t = 50ms
-            
-            var players = getArgument("targets").resolve(source)
-            
-            for(const player of players)
-              player.ban("You were banned!", duration, null)
+          
+            // No more need to resolve arguments. It's done automatically
+            var player = args.get("target").getFirst()
+            var formatted = DurationFormatter.formatHumanReadable(duration)
+          
+            player.ban("You were banned for " + formatted, duration, null)
           }
+
+temp-boss-bar:
+  description: 'Temporary boss bar'
+  permission: 'ccmd.command.temp-boss-bar'
+  executes:
+    type: boss_bar
+    boss-bar:
+      name: 'Custom boss bar'
+      progress: 1.0
+      color: yellow
+      stay-ticks: 100 # 5s
+
+disabled-command:
+  # Causes the command not to be registered.
+  # The root command will still be available in '/ccmd command'
+  # Any children are not parsed.
+  enabled: false
+  description: 'A disabled command'

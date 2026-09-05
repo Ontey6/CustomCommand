@@ -1,4 +1,4 @@
-package ontey.ccmd.command.translator.enums;
+package ontey.ccmd.command.argument;
 
 import com.mojang.brigadier.arguments.*;
 import io.papermc.paper.command.brigadier.argument.ArgumentTypes;
@@ -16,6 +16,9 @@ public enum ArgumentTypeProvider {
 	VARARGS_STRING(StringArgumentType::greedyString),
 	BOOLEAN(BoolArgumentType::bool),
 	INTEGER(section -> {
+		if(section == null)
+			return IntegerArgumentType.integer();
+		
 		if(section.contains("min")) {
 			int min = section.getInt("min", Integer.MIN_VALUE);
 			
@@ -28,6 +31,9 @@ public enum ArgumentTypeProvider {
 		}
 	}),
 	LONG(section -> {
+		if(section == null)
+			return LongArgumentType.longArg();
+		
 		if(section.contains("min")) {
 			long min = section.getLong("min", Long.MIN_VALUE);
 			
@@ -40,6 +46,9 @@ public enum ArgumentTypeProvider {
 		}
 	}),
 	FLOAT(section -> {
+		if(section == null)
+			return FloatArgumentType.floatArg();
+		
 		if(section.contains("min")) {
 			float min = (float) section.getDouble("min", Float.MIN_VALUE);
 			
@@ -52,6 +61,9 @@ public enum ArgumentTypeProvider {
 		}
 	}),
 	DOUBLE(section -> {
+		if(section == null)
+			return DoubleArgumentType.doubleArg();
+		
 		if(section.contains("min")) {
 			double min = section.getDouble("min", Double.MIN_VALUE);
 			
@@ -71,8 +83,18 @@ public enum ArgumentTypeProvider {
 	BLOCK_POSITION(ArgumentTypes::blockPosition),
 	COLUMN_BLOCK_POSITION(ArgumentTypes::columnBlockPosition),
 	BLOCK_IN_WORLD_PREDICATE(ArgumentTypes::blockInWorldPredicate),
-	FINE_POSITION(section -> ArgumentTypes.finePosition(section.getBoolean("center-integers", false))),
-	COLUMN_FINE_POSITION(section -> ArgumentTypes.columnFinePosition(section.getBoolean("center-integers", false))),
+	FINE_POSITION(section -> {
+		if(section == null)
+			return ArgumentTypes.finePosition();
+		else
+			return ArgumentTypes.finePosition(section.getBoolean("center-integers", false));
+	}),
+	COLUMN_FINE_POSITION(section -> {
+		if(section == null)
+			return ArgumentTypes.columnFinePosition();
+		else
+			return ArgumentTypes.columnFinePosition(section.getBoolean("center-integers", false));
+	}),
 	ROTATION(ArgumentTypes::rotation),
 	ANGLE(ArgumentTypes::angle),
 	AXES(ArgumentTypes::axes),

@@ -4,16 +4,22 @@ import lombok.NonNull;
 import ontey.ccmd.command.exception.ParseException;
 import org.jetbrains.annotations.Nullable;
 
-//TODO replace manually thrown exceptions
-public record ParseContext(String rootName, @Nullable String currentArgumentName, @Nullable String currentSection,
-                           boolean isRoot) {
+/**
+ * @param rootName The command's name
+ * @param currentArgumentName The name of the argument that is currently being parsed. If {@link #isRoot}, returns {@code rootName}.
+ * @param currentSection If a subsection of an argument is currently being parsed, this is the name of the subsection.
+ * @param isRoot Whether the current argument is the root of the command
+ */
+
+public record ParseContext(@NonNull String rootName, @NonNull String currentArgumentName,
+                           @Nullable String currentSection, boolean isRoot) {
 	
 	public ParseContext(String rootName, String currentArgumentName) {
 		this(rootName, currentArgumentName, null, false);
 	}
 	
 	public ParseContext(String rootName) {
-		this(rootName, null, null, false);
+		this(rootName, rootName, null, false);
 	}
 	
 	public ParseContext(String rootName, String currentArgumentName, boolean isRoot) {
@@ -21,7 +27,7 @@ public record ParseContext(String rootName, @Nullable String currentArgumentName
 	}
 	
 	public ParseContext(String rootName, boolean isRoot) {
-		this(rootName, null, null, isRoot);
+		this(rootName, rootName, null, isRoot);
 	}
 	
 	/**
@@ -29,7 +35,7 @@ public record ParseContext(String rootName, @Nullable String currentArgumentName
 	 * Uses {@link #buildErrorMessage(String)}.
 	 */
 	
-	public ParseException newException(String errorMessage) {
+	public ParseException newException(@NonNull String errorMessage) {
 		return new ParseException(buildErrorMessage(errorMessage));
 	}
 	
@@ -38,7 +44,7 @@ public record ParseContext(String rootName, @Nullable String currentArgumentName
 	 * Uses {@link #buildErrorMessage(String)}.
 	 */
 	
-	public ParseException newException(String errorMessage, Throwable cause) {
+	public ParseException newException(@NonNull String errorMessage, @NonNull Throwable cause) {
 		return new ParseException(buildErrorMessage(errorMessage), cause);
 	}
 	
@@ -51,18 +57,17 @@ public record ParseContext(String rootName, @Nullable String currentArgumentName
 	private String buildErrorMessage(String errorMessage) {
 		StringBuilder sb = new StringBuilder("{'").append(rootName);
 		
-		if(currentArgumentName != null) {
+		if(!isRoot)
 			sb.append("':'").append(currentArgumentName);
-			
-			if(currentSection != null)
-				sb.append("':'").append(currentSection);
-		}
+		
+		if(currentSection != null)
+			sb.append("':'").append(currentSection);
 		
 		sb.append("'} ").append(errorMessage);
 		return sb.toString();
 	}
 	
-	@Nullable
+	@NonNull
 	public String name() {
 		return isRoot() ? rootName : currentArgumentName;
 	}

@@ -28,17 +28,23 @@ public final class TitleUtil {
 		if(timesSection == null)
 			return Title.DEFAULT_TIMES;
 		
-		var fadeIn = getDuration(timesSection, "fade-in", context);
-		var stay = getDuration(timesSection, "stay", context);
-		var fadeOut = getDuration(timesSection, "fade-out", context);
+		var fadeIn = getDuration(timesSection.getString("fade-in"), "fade-in", context);
+		var stay = getDuration(timesSection.getString("stay"), "stay", context);
+		var fadeOut = getDuration(timesSection.getString("fade-out"), "fade-out", context);
 		
 		return Title.Times.times(fadeIn, stay, fadeOut);
 	}
 	
-	@NonNull
-	private static Duration getDuration(@NonNull ConfigSection timesSection, @NonNull String fieldName, ParseContext context) {
-		var times = timesSection.getString(fieldName);
+	public static Title.Times getTimes(@NonNull String fadeIn, @NonNull String stay, @NonNull String fadeOut, ParseContext context) {
+		var _fadeIn = getDuration(fadeIn, "fade-in", context);
+		var _stay = getDuration(stay, "stay", context);
+		var _fadeOut = getDuration(fadeOut, "fade-out", context);
 		
+		return Title.Times.times(_fadeIn, _stay, _fadeOut);
+	}
+	
+	@NonNull
+	private static Duration getDuration(@Nullable String times, @NonNull String fieldName, ParseContext context) {
 		if(times == null)
 			return Duration.ZERO;
 		

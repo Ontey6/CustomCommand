@@ -1,14 +1,15 @@
 package ontey.ccmd.updater;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import lombok.Getter;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import ontey.api.loader.AutoRegistered;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -25,17 +26,19 @@ public class Updater implements Listener {
 	private static final String HANGAR_PROJECT = "CustomCommand";
 	
 	@Getter
-	private static volatile String latest = null;
+	@Nullable
+	private static volatile Update latest = null;
 	
 	public static void checkForUpdates() {
 		CompletableFuture.runAsync(() -> {
 			try {
-				String latest = fetchHangar();
+				Update latest = fetchHangar();
 				
 				String current = plugin.getMeta().getVersion();
-				if(latest != null && !isUpToDate(current, latest)) {
+				if(!isUpToDate(current, latest.version())) {
 					Updater.latest = latest;
-					plugin.getSLF4JLogger().warn("An update is available: {}", latest);
+					plugin.getSLF4JLogger().warn("An update is available: {}", latest.version());
+					plugin.getSLF4JLogger().warn("Download it using '/ccmd update'");
 				}
 			} catch(Exception e) {
 				plugin.getSLF4JLogger().error("[Updater] Could not check for updates: {}", e.getMessage());
@@ -44,15 +47,27 @@ public class Updater implements Listener {
 		});
 	}
 	
-	private static String fetchHangar() throws Exception {
+	private static Update fetchHangar() throws Exception {
 		String url = "https://hangar.papermc.io/api/v1/projects/" + HANGAR_AUTHOR + "/" + HANGAR_PROJECT + "/versions";
 		HttpURLConnection conn = (HttpURLConnection) URI.create(url).toURL().openConnection();
 		conn.setRequestProperty("User-Agent", "Ontey/CustomCommand Updater");
 		try(InputStreamReader reader = new InputStreamReader(conn.getInputStream())) {
 			JsonObject root = JsonParser.parseReader(reader).getAsJsonObject();
-			return root.getAsJsonArray("result")
-			  .get(0).getAsJsonObject()
-			  .get("name").getAsString();
+			JsonObject latestVersion = root.getAsJsonArray("result").get(0).getAsJsonObject();
+			JsonObject downloadsObject = latestVersion.get("downloads").getAsJsonObject().get("PAPER").getAsJsonObject();
+			JsonArray formattedVersions = latestVersion.get("platformDependenciesFormatted").getAsJsonObject().get("PAPER").getAsJsonArray();
+			String formattedVersionString = formattedVersions.size() == 1
+			  ? formattedVersions.get(0).getAsString()
+			  : formattedVersions.asList().stream().map(JsonElement::getAsString).toList().toString();
+			
+			return new Update(
+			  latestVersion.get("name").getAsString(),
+			  latestVersion.get("description").getAsString(),
+			  downloadsObject.get("fileInfo").getAsJsonObject().get("name").getAsString(),
+			  downloadsObject.get("downloadUrl").getAsString(),
+			  latestVersion.get("platformDependencies").getAsJsonObject().get("PAPER").getAsJsonArray().asList().stream().map(JsonElement::getAsString).toList(),
+			  formattedVersionString
+			);
 		}
 	}
 	
@@ -71,9 +86,7 @@ public class Updater implements Listener {
 	
 	@EventHandler
 	public void onJoin(PlayerJoinEvent event) {
-		if(!event.getPlayer().isOp() && latest != null)
-			return;
-		
-		event.getPlayer().sendMessage(Component.text("[CustomCommand] An update is available: " + latest, NamedTextColor.YELLOW));
+		if(event.getPlayer().isOp() && latest != null)
+			event.getPlayer().sendMessage(latest.getUpdaterMessage());
 	}
 }
