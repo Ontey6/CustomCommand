@@ -68,13 +68,15 @@ public final class CustomCommandRegistry {
 				var rootNode = dispatcher.getRoot();
 				
 				for(var command : registeredCommands)
-					rootNode.addChild((LiteralCommandNode) command);
+					if(command.getCustomCommand().values().enabled())
+						rootNode.addChild((LiteralCommandNode) command);
 				
 				rootNode.addChild((LiteralCommandNode) new CustomCommandCommand().build().root());
 			} else {
 				lifecycleManager.registerEventHandler(LifecycleEvents.COMMANDS, event -> {
 					for(var command : registeredCommands)
-						event.registrar().register(command);
+						if(command.getCustomCommand().values().enabled())
+							event.registrar().register(command);
 					
 					event.registrar().register(new CustomCommandCommand().build().root());
 				});
