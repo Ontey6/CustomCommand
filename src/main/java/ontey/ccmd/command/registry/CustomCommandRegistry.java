@@ -22,7 +22,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.nio.file.*;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 
 import static ontey.ccmd.shared.SharedConstants.dataDirectory;
@@ -86,11 +88,10 @@ public final class CustomCommandRegistry {
 					event.registrar().register(new CustomCommandCommand().build().root());
 				});
 			}
-			
 		} catch(ParseException e) {
 			logger.error(e.getMessage());
 			fileLog.saveStackTrace(e);
-		} catch (Exception e) {
+		} catch(Exception e) {
 			logger.error("An unexpected exception occurred");
 			fileLog.saveStackTrace(e);
 		}

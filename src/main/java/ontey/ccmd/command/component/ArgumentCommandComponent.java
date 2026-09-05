@@ -15,7 +15,7 @@ public record ArgumentCommandComponent(
   @Nullable Requirement requirement,
   @Nullable Suggestion suggestions,
   @NonNull ArgumentType<?> argumentType
-  ) implements CommandComponent {
+) implements CommandComponent {
 	
 	@Override
 	public @NonNull String prefix() {

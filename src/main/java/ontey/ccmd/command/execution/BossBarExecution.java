@@ -67,7 +67,8 @@ public record BossBarExecution(@NonNull String name, float progress, @NonNull Bo
 					
 					nestedMap.remove(player.getUniqueId());
 				}
-			}, () -> {}, stayTicks);
+			}, () -> {
+			}, stayTicks);
 		}
 	}
 	

@@ -35,7 +35,7 @@ public class CustomCommandCommand extends Command {
 		  .then(update()
 			 .then(updateForce()))
 		  .then(commands()
-		    .then(commandsWith()))
+			 .then(commandsWith()))
 		  .then(command())
 		  .then(help())
 		  .then(reload());
@@ -50,7 +50,7 @@ public class CustomCommandCommand extends Command {
 		return Component
 		  .text("> ")
 		  .append(Component.text(key)
-		    .hoverEvent(HoverEvent.showText(Component.text(description))))
+			 .hoverEvent(HoverEvent.showText(Component.text(description))))
 		  .append(Component.text(": "))
 		  .append(Component.text(String.valueOf(value), NamedTextColor.YELLOW));
 	}
@@ -159,7 +159,7 @@ public class CustomCommandCommand extends Command {
 		  .executes(_ -> {
 			  throw Arg.simpleException("No command or command section specified");
 		  });
-	
+		
 		addCommandsNodes(base, new ArrayList<>(CustomCommandRegistry.getRegisteredCustomCommands()));
 		
 		return base;

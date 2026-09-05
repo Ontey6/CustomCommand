@@ -8,7 +8,10 @@ import java.nio.file.Path;
 public class SharedConstants {
 	
 	public static PluginMeta pluginMeta;
+	
 	public static ComponentLogger logger;
+	
 	public static Path dataDirectory;
+	
 	public static Path pluginsDirectory;
 }
