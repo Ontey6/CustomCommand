@@ -64,15 +64,6 @@ public enum SuggestionType {
 	@Getter
 	private final SuggestionsParser action;
 	
-	public static SuggestionProvider<CommandSourceStack> parseSuggestions(ParseContext context, ConfigSection section) {
-		var suggestionType = section.getEnum("type", SuggestionType.class);
-		
-		if(suggestionType == null)
-			throw context.newException("Doesn't specify a valid type ('suggests.type' is either not set or invalid)");
-		
-		return suggestionType.action.parseSuggestions(context, section);
-	}
-	
 	private static SuggestionProvider<CommandSourceStack> parseJavascript(String code, ParseContext context) {
 		
 		return (ctx, suggestionsBuilder) -> {

@@ -13,11 +13,6 @@ import java.util.List;
 
 public interface Suggestion extends CombinedConfigSerializable {
 	
-	/// @return The type of the suggestion component
-	
-	@NonNull
-	SuggestionType type(); //TODO do I even need this? Maybe remove the enums and add the methods to the type components.
-	
 	@NonNull
 	List<? extends @NonNull SuggestionEntry> parseSuggestionList(@NonNull ParseContext context, @NonNull CommandContext<CommandSourceStack> commandContext, @NonNull SuggestionsBuilder suggestionsBuilder);
 	

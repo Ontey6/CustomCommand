@@ -15,11 +15,6 @@ import java.util.Map;
 public record ListSuggestion(List<? extends SuggestionEntry> suggestions, boolean dynamic) implements Suggestion {
 	
 	@Override
-	public @NonNull SuggestionType type() {
-		return SuggestionType.LIST;
-	}
-	
-	@Override
 	public @NonNull List<? extends @NonNull SuggestionEntry> parseSuggestionList(@Nullable ParseContext a, @Nullable CommandContext<CommandSourceStack> c, @Nullable SuggestionsBuilder d) {
 		return suggestions;
 	}
@@ -31,7 +26,7 @@ public record ListSuggestion(List<? extends SuggestionEntry> suggestions, boolea
 	@Override
 	public @NotNull Map<String, Object> serialize() {
 		return Map.of(
-		  "type", "LIST",
+		  "type", "list",
 		  "dynamic", dynamic,
 		  "list", suggestions.stream().map(entry -> {
 			  var tooltip = entry.tooltip();

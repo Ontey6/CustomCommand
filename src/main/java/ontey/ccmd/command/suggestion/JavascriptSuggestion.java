@@ -19,11 +19,6 @@ import static ontey.ccmd.util.JavascriptUtil.*;
 public record JavascriptSuggestion(String javascript) implements Suggestion {
 	
 	@Override
-	public @NonNull SuggestionType type() {
-		return SuggestionType.JAVASCRIPT;
-	}
-	
-	@Override
 	public @NonNull List<? extends @NonNull SuggestionEntry> parseSuggestionList(@NonNull ParseContext context, @NonNull CommandContext<CommandSourceStack> commandContext, @NonNull SuggestionsBuilder suggestionsBuilder) {
 		Javascript javascript = createBaseJavascript();
 		addContextToJavascript(commandContext, javascript);
@@ -55,7 +50,7 @@ public record JavascriptSuggestion(String javascript) implements Suggestion {
 	@Override
 	public @NotNull Map<String, Object> serialize() {
 		return Map.of(
-		  "type", "JAVASCRIPT",
+		  "type", "javascript",
 		  "javascript", javascript
 		);
 	}

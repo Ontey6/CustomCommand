@@ -15,11 +15,6 @@ import java.util.Map;
 public record JavascriptReferenceSuggestion(String javascriptFile) implements Suggestion {
 	
 	@Override
-	public @NonNull SuggestionType type() {
-		return SuggestionType.JAVASCRIPT_REFERENCE;
-	}
-	
-	@Override
 	public @NonNull List<? extends @NonNull SuggestionEntry> parseSuggestionList(@NonNull ParseContext context, @NonNull CommandContext<CommandSourceStack> commandContext, @NonNull SuggestionsBuilder suggestionsBuilder) {
 		var javascript = JavascriptUtil.getFileContents(context, javascriptFile);
 		return new JavascriptSuggestion(javascript)
@@ -29,7 +24,7 @@ public record JavascriptReferenceSuggestion(String javascriptFile) implements Su
 	@Override
 	public @NotNull Map<String, Object> serialize() {
 		return Map.of(
-		  "type", "JAVASCRIPT_REFERENCE",
+		  "type", "javascript_reference",
 		  "javascript-file", javascriptFile
 		);
 	}
