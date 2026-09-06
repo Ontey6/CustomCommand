@@ -75,7 +75,11 @@ public class CustomCommandCommand extends Command {
 			  if(latest == null)
 				  throw Arg.simpleException("[CustomCommand] Already on the latest version!");
 			  
-			  sender.sendMessage(Component.text("[CustomCommand] Click here to download the update (Or run /ccmd update force)", NamedTextColor.YELLOW).clickEvent(ClickEvent.runCommand("ccmd update force")));
+			  sender.sendMessage(latest.getUpdaterMessage());
+			  sender.sendMessage(Component.text("[CustomCommand] ")
+			    .append(Component
+			      .text("Click to download (/ccmd update force)", NamedTextColor.YELLOW)
+			      .clickEvent(ClickEvent.runCommand("ccmd update force"))));
 			  
 			  return SUCCESS;
 		  });

@@ -76,7 +76,7 @@ public record Update(@NonNull String version, @NonNull String description, @NonN
 	}
 	
 	public Component getUpdaterMessage() {
-		var versionComponent = getVersion();
+		var versionComponent = getVersionMessage();
 		if(minecraftVersions.contains(Bukkit.getMinecraftVersion()))
 			return Component.text("[CustomCommand] An update is available: ").append(versionComponent);
 		else
@@ -85,7 +85,7 @@ public record Update(@NonNull String version, @NonNull String description, @NonN
 			  .append(Component.text("The update supports version(s) " + formattedMinecraftVersions)).appendNewline();
 	}
 	
-	public Component getVersion() {
+	public Component getVersionMessage() {
 		return Component.text(version)
 		  .clickEvent(ClickEvent.suggestCommand("/ccmd update"))
 		  .hoverEvent(HoverEvent.showText(Component.text("Supported minecraft version(s): " + formattedMinecraftVersions).appendNewline().append(Component.text("Description:\n" + description))));
