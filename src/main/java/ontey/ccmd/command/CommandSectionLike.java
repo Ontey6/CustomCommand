@@ -1,17 +1,22 @@
 package ontey.ccmd.command;
 
 import com.mojang.brigadier.Command;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.brigadier.tree.ArgumentCommandNode;
 import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import lombok.NonNull;
-import ontey.api.command.config.CommandConfig;
+import ontey.api.command.argument.Arg;
 import ontey.ccmd.command.component.ArgumentCommandComponent;
 import ontey.ccmd.command.component.CommandComponent;
+import ontey.ccmd.command.config.CustomCommandConfig;
 import ontey.ccmd.command.context.ParseContext;
+import ontey.ccmd.command.data.CommandData;
 import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.entity.Player;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
@@ -32,11 +37,12 @@ public interface CommandSectionLike {
 	/// @return The values of this command
 	
 	@NonNull
-	CommandConfig values();
+	CustomCommandConfig values();
 	
 	/// @return The name of this command or argument
 	
 	@NonNull
+	@Contract(pure = true)
 	default String name() {
 		return values().name();
 	}
@@ -52,15 +58,30 @@ public interface CommandSectionLike {
 	@NonNull
 	CommandComponent component();
 	
+	/// @return Gets the mutable data associated with this command section
+	
+	@NonNull
+	@Contract(pure = true)
+	default CommandData data() {
+		return CommandData.getOrCreateData(this);
+	}
+	
 	/// Builds this command section into a [CommandNode] - including the children - and returns it.
 	
 	default @NonNull CommandNode<CommandSourceStack> build(@NonNull ParseContext context) {
 		var execution = component().execution();
 		var requirement = component().requirement();
 		
-		Command<CommandSourceStack> command = execution == null
-		  ? null
-		  : execution.parseExecution(context.withSection("executes"));
+		Command<CommandSourceStack> command;
+		
+		if(execution == null)
+			command = null;
+		else
+			command = ctx -> {
+				checkAndSetCooldown(ctx.getSource());
+				
+				return execution.parseExecution(context.withSection("executes")).run(ctx);
+			};
 		
 		Predicate<CommandSourceStack> brigRequirement = requirement == null
 		  ? null
@@ -96,5 +117,17 @@ public interface CommandSectionLike {
 		} else {
 			return new LiteralCommandNode<>(name(), command, finalRequirement, null, null, false);
 		}
+	}
+	
+	private void checkAndSetCooldown(@NonNull CommandSourceStack source) throws CommandSyntaxException {
+		if(!(source.getSender() instanceof Player player))
+			return;
+		
+		var lastExecutionTime = data().getLastExecutionTime(player);
+		
+		if(lastExecutionTime != null && !lastExecutionTime.isExpired())
+			throw Arg.simpleException("Command is on a cooldown! Wait " + lastExecutionTime.formatRemaining());
+		
+		data().setLastExecutionTime(player);
 	}
 }

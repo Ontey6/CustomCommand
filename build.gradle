@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.ontey"
-version = "2.4"
+version = "2.4.1"
 
 repositories {
    mavenCentral()
@@ -28,7 +28,7 @@ tasks.shadowJar {
    relocate("ontey.api", "relocated.ccmd.ontey.api")
    relocate("org.bstats", "relocated.ccmd.org.bstats")
 
-   archiveFileName = "CustomCommand-${version}.jar"
+   archiveFileName = "${rootProject.name}-${version}.jar"
    destinationDirectory = file("C:\\Users\\klett\\Documents\\Minecraft\\Servers\\TestServer\\plugins")
 }
 

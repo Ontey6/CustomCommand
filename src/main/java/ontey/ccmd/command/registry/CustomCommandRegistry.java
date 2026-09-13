@@ -25,7 +25,10 @@ import java.net.URLConnection;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static ontey.ccmd.shared.SharedConstants.dataDirectory;
 import static ontey.ccmd.shared.SharedConstants.logger;
@@ -215,7 +218,7 @@ public final class CustomCommandRegistry {
 			CustomCommand cmd;
 			
 			try {
-				cmd = CustomCommandParser.parseYaml(section);
+				cmd = CustomCommandParser.parseYaml(section, file);
 			} catch(ParseException e) {
 				// DO NOT CHANGE 'this command' TO 'it'. IT CHANGES CONTEXT.
 				logger.warn("Encountered an exception while parsing command '{}' in file '{}'. Skipping this command.", name, file.getName());

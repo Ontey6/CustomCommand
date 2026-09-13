@@ -32,14 +32,15 @@ public class CustomCommandCommand extends Command {
 		aliases.add("ccmd");
 		
 		root
-		  .executes(rootExecution())
+		  .executes(versionExecution())
 		  .then(update()
 			 .then(updateForce()))
 		  .then(commands()
 			 .then(commandsWith()))
 		  .then(command())
 		  .then(help())
-		  .then(reload());
+		  .then(reload())
+		  .then(version());
 	}
 	
 	private static void sendConditional(CommandSender sender, List<String> selected, String key, Object value, String description) {
@@ -56,7 +57,7 @@ public class CustomCommandCommand extends Command {
 		  .append(Component.text(String.valueOf(value), NamedTextColor.YELLOW));
 	}
 	
-	private com.mojang.brigadier.Command<CommandSourceStack> rootExecution() {
+	private com.mojang.brigadier.Command<CommandSourceStack> versionExecution() {
 		return ctx -> {
 			var sender = ctx.getSource().getSender();
 			
@@ -64,6 +65,11 @@ public class CustomCommandCommand extends Command {
 			
 			return SUCCESS;
 		};
+	}
+	
+	private LiteralArgumentBuilder<CommandSourceStack> version() {
+		return Arg.literal("version")
+		  .executes(versionExecution());
 	}
 	
 	private LiteralArgumentBuilder<CommandSourceStack> update() {
@@ -77,9 +83,9 @@ public class CustomCommandCommand extends Command {
 			  
 			  sender.sendMessage(latest.getUpdaterMessage());
 			  sender.sendMessage(Component.text("[CustomCommand] ")
-			    .append(Component
-			      .text("Click to download (/ccmd update force)", NamedTextColor.YELLOW)
-			      .clickEvent(ClickEvent.runCommand("ccmd update force"))));
+				 .append(Component
+					.text("Click to download (/ccmd update force)", NamedTextColor.YELLOW)
+					.clickEvent(ClickEvent.runCommand("ccmd update force"))));
 			  
 			  return SUCCESS;
 		  });

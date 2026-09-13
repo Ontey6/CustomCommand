@@ -17,8 +17,10 @@
 </div>
 
 # Early stages of development
-v2 is currently under development. I'm not on alpha/beta builds anymore, but there are still many features to add and features to change.
+v2 is currently under development. I'm not on alpha/beta builds anymore, but there are still many features to add and
+features to change.
 When finished, it will feature:
+
 - ✅ basic command features like description, permission, disabling and console only.
 - ✅ preset argument types
 - and custom argument types (for re-using and de-duplication)
@@ -32,12 +34,14 @@ When finished, it will feature:
 
 # Reloadability (/reload support)
 I don't plan to make this plugin reloadable using the reload command.
-It uses paper's brigadier command registration, which is a lifecycle "event", so you will get an error message when trying to run the reload command.
+It uses paper's brigadier command registration, which is a lifecycle "event", so you will get an error message when
+trying to run the reload command.
 
 # Compatibility
 ## Minecraft Versions
 The latest versions will always be supported
 I will not try to keep a wide compatibility range, but currently:
+
 - The base plugin should support 1.21+ fine.
 - The extra plugin coming later will only support 1.21.8+ because of dialogs.
 
@@ -62,6 +66,7 @@ Not yet.
 I can imagine that I will make it as soon as the plugin has all features I want to add.
 
 # *: AI Usage?
+
 - ❌ Vibecoding/Agentic Engineering (fully AI generated files or parts of the project)
 - ✅ Debugging
 - ❌ Generating text (description, example commands, tutorials)

@@ -8,16 +8,17 @@ import ontey.ccmd.command.execution.Executions;
 import ontey.ccmd.command.registry.CustomCommandRegistry;
 import ontey.ccmd.command.requirement.Requirements;
 import ontey.ccmd.command.suggestion.Suggestions;
-import ontey.ccmd.shared.SharedConstants;
+
+import static ontey.ccmd.shared.SharedConstants.*;
 
 public class CustomCommandBootstrapper implements PluginBootstrap {
 	
 	@Override
 	public void bootstrap(@NonNull BootstrapContext context) {
-		SharedConstants.logger = context.getLogger();
-		SharedConstants.pluginMeta = context.getPluginMeta();
-		SharedConstants.dataDirectory = context.getDataDirectory();
-		SharedConstants.pluginsDirectory = context.getPluginSource();
+		logger = context.getLogger();
+		pluginMeta = context.getPluginMeta();
+		dataDirectory = context.getDataDirectory();
+		pluginsDirectory = context.getPluginSource();
 		
 		CommandComponents.registerDefaultArgumentTypes();
 		Executions.registerDefaultExecutions();

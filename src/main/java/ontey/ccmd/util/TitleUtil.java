@@ -8,8 +8,7 @@ import ontey.ccmd.format.Formatter;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
 
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
+import static ontey.ccmd.util.DurationUtil.*;
 
 public final class TitleUtil {
 	
@@ -21,41 +20,10 @@ public final class TitleUtil {
 	}
 	
 	public static Title.Times getTimes(@NonNull String fadeIn, @NonNull String stay, @NonNull String fadeOut, ParseContext context) {
-		var _fadeIn = getDuration(fadeIn, "fade-in", context);
-		var _stay = getDuration(stay, "stay", context);
-		var _fadeOut = getDuration(fadeOut, "fade-out", context);
+		var _fadeIn = parseDuration(fadeIn, "fade-in", context);
+		var _stay = parseDuration(stay, "stay", context);
+		var _fadeOut = parseDuration(fadeOut, "fade-out", context);
 		
 		return Title.Times.times(_fadeIn, _stay, _fadeOut);
-	}
-	
-	@NonNull
-	private static Duration getDuration(@Nullable String times, @NonNull String fieldName, ParseContext context) {
-		if(times == null)
-			return Duration.ZERO;
-		
-		if(!matchesTimesFormat(times))
-			throw context.newException("The field '" + fieldName + "' is not a valid time format (It should be an integer followed by ms/t/s/m/h/d)");
-		
-		int backshift = times.endsWith("ms") ? 2 : 1;
-		
-		var value = Long.parseLong(times.substring(0, times.length() - backshift));
-		var timeUnit = switch(times.substring(times.length() - backshift)) {
-			case "ms" -> ChronoUnit.MILLIS;
-			case "t" -> null;
-			case "s" -> ChronoUnit.SECONDS;
-			case "m" -> ChronoUnit.MINUTES;
-			case "h" -> ChronoUnit.HOURS;
-			case "d" -> ChronoUnit.DAYS;
-			default -> throw new IllegalStateException("This is a bug. Report to developer.");
-		};
-		
-		if(timeUnit == null)
-			return Duration.of(value * 50, ChronoUnit.MILLIS);
-		
-		return Duration.of(value, timeUnit);
-	}
-	
-	private static boolean matchesTimesFormat(String input) {
-		return input.matches("\\d+(ms|t|s|m|h|d)");
 	}
 }
