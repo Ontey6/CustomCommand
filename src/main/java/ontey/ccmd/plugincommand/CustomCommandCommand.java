@@ -124,12 +124,14 @@ public class CustomCommandCommand extends Command {
 				var consoleOnly = values.consoleOnly();
 				var enabled = values.enabled();
 				var aliases = values.aliases();
+				var cooldown = values.rawCooldown();
 				
 				sender.sendMessage(Component.text(command.name(), enabled ? NamedTextColor.GREEN : NamedTextColor.RED));
 				sendConditional(sender, selected, "description", description, "A short description of what the command does");
 				sendConditional(sender, selected, "permission", permission, "The permission players need to run the command");
 				sendConditional(sender, selected, "aliases", aliases, "Commands that do the same things as this command with a different name");
 				sendConditional(sender, selected, "console_only", consoleOnly, "Whether the command can only be run as the console");
+				sendConditional(sender, selected, "cooldown", cooldown, "The cooldown of this command");
 				sendConditional(sender, selected, "children", command.children().stream().map(CommandSectionLike::name).toList(), "The children of the command");
 			}
 			
@@ -140,7 +142,7 @@ public class CustomCommandCommand extends Command {
 	private LiteralArgumentBuilder<CommandSourceStack> commandsWith() {
 		var base = Arg.literal("with");
 		
-		var list = List.of("description", "permission", "console_only", "aliases", "children");
+		var list = List.of("description", "permission", "console_only", "aliases", "cooldown", "children");
 		
 		addWithNodes(base, list, new ArrayList<>());
 		
@@ -212,12 +214,14 @@ public class CustomCommandCommand extends Command {
 			var consoleOnly = values.consoleOnly();
 			var enabled = values.enabled();
 			var aliases = values.aliases();
+			var cooldown = values.rawCooldown();
 			
 			sender.sendMessage(Component.text(section.name(), enabled ? NamedTextColor.GREEN : NamedTextColor.RED));
 			sender.sendMessage(keyValue("description", description, "A short description of what the command does"));
 			sender.sendMessage(keyValue("permission", permission, "The permission players need to run the command"));
 			sender.sendMessage(keyValue("aliases", aliases, "Commands that do the same things as this command with a different name"));
 			sender.sendMessage(keyValue("console_only", consoleOnly, "Whether the command can only be run as the console"));
+			sender.sendMessage(keyValue("cooldown", cooldown, "The cooldown of this command"));
 			sender.sendMessage(keyValue("children", section.children().stream().map(CommandSectionLike::name).toList(), "The children of the command (section)"));
 			
 			return SUCCESS;
