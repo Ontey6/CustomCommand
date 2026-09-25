@@ -17,6 +17,8 @@ import java.net.URI;
 import java.util.concurrent.CompletableFuture;
 
 import static ontey.ccmd.Main.plugin;
+import static ontey.ccmd.shared.SharedConstants.logger;
+import static ontey.ccmd.shared.SharedConstants.fileLog;
 
 @AutoRegistered
 public class Updater implements Listener {
@@ -37,12 +39,15 @@ public class Updater implements Listener {
 				String current = plugin.getMeta().getVersion();
 				if(!isUpToDate(current, latest.version())) {
 					Updater.latest = latest;
-					plugin.getSLF4JLogger().warn("An update is available: {}", latest.version());
-					plugin.getSLF4JLogger().warn("Download it using '/ccmd update'");
+					logger.warn("An update is available: {}", latest.version());
+					logger.warn("Download it using '/ccmd update'");
+				} else {
+					var fiveMinutes = 5L * 60L * 20L;
+					plugin.getScheduler().runTaskTimer(Updater::checkForUpdates, fiveMinutes, fiveMinutes);
 				}
 			} catch(Exception e) {
-				plugin.getSLF4JLogger().error("[Updater] Could not check for updates: {}", e.getMessage());
-				plugin.getFileLog().saveStackTrace(e);
+				logger.error("[Updater] Could not check for updates: {}", e.getMessage());
+				fileLog.saveStackTrace(e);
 			}
 		});
 	}
@@ -79,7 +84,7 @@ public class Updater implements Listener {
 			float curr = Float.parseFloat(current);
 			float lat = Float.parseFloat(latest);
 			return curr >= lat;
-		} catch(NumberFormatException exc) {
+		} catch(NumberFormatException _) {
 			return false;
 		}
 	}

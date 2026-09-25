@@ -3,19 +3,26 @@ package ontey.ccmd.command.config;
 import lombok.NonNull;
 import ontey.api.config.ConfigSection;
 import ontey.api.serialization.CombinedConfigSerializable;
-import ontey.ccmd.command.CustomCommand;
+import ontey.ccmd.command.CommandSectionLike;
 import ontey.ccmd.command.context.ParseContext;
+import ontey.ccmd.cooldown.Cooldown;
+import ontey.ccmd.cooldown.message.CooldownMessage;
 import ontey.ccmd.util.DurationUtil;
 import org.jetbrains.annotations.Nullable;
 
-import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * A command configuration for {@link CustomCommand}s.
- */
+/// A command configuration for {@link CommandSectionLike}s.
+///
+/// @param name The name of the command (section)
+/// @param aliases The aliases, which are alternate names, that can be used instead of the name
+/// @param description An optional description, that briefly explains what this command does
+/// @param permission An optional permission needed to run the command (section)
+/// @param consoleOnly Whether the command (section) can only be run by the console
+/// @param cooldown An optional cooldown that makes the command not runnable for the executor for a certain duration after executing it
+/// @param enabled Whether this command (section) is enabled and should be parsed and registered
 
 public record CustomCommandConfig(
   @NonNull String name,
@@ -23,16 +30,13 @@ public record CustomCommandConfig(
   @Nullable String description,
   @Nullable String permission,
   boolean consoleOnly,
-  @Nullable String rawCooldown,
-  @Nullable Duration cooldown,
+  @Nullable Cooldown cooldown,
   boolean enabled
 ) implements CombinedConfigSerializable {
 	
-	/**
-	 * Deserializes the given {@link ConfigSection} into a {@link CustomCommandConfig}
-	 *
-	 * @return A new {@link CustomCommandConfig} based on the values of the given {@link ConfigSection}.
-	 */
+	/// Deserializes the given [ConfigSection] into a [CustomCommandConfig]
+	///
+	/// @return A new [CustomCommandConfig] based on the values of the given [ConfigSection].
 	
 	public static @NonNull CustomCommandConfig deserialize(@NonNull ParseContext context, @NonNull ConfigSection section, int prefixLength) throws IllegalStateException {
 		String name = section.getName().substring(prefixLength);
@@ -40,15 +44,18 @@ public record CustomCommandConfig(
 		String description = section.getString("description");
 		String permission = section.getString("permission");
 		boolean consoleOnly = section.getBoolean("console-only");
-		var rawCooldown = section.getString("cooldown");
-		var cooldown = rawCooldown == null ? null : DurationUtil.parseDuration(rawCooldown, "cooldown", context);
+		var rawCooldownDuration = section.getString("cooldown");
+		var cooldownDuration = rawCooldownDuration == null ? null : DurationUtil.parseDuration(rawCooldownDuration, "cooldown", context);
+		var rawCooldownMessage = section.getString("cooldown-message");
+		var cooldownMessage = rawCooldownMessage == null ? CooldownMessage.defaultMessage() : CooldownMessage.deserialize(rawCooldownMessage);
+		var cooldown = rawCooldownDuration == null ? null : new Cooldown(cooldownDuration, rawCooldownDuration, cooldownMessage);
 		boolean enabled = section.getBoolean("enabled", true);
 		
-		return new CustomCommandConfig(name, aliases, description, permission, consoleOnly, rawCooldown, cooldown, enabled);
+		return new CustomCommandConfig(name, aliases, description, permission, consoleOnly, cooldown, enabled);
 	}
 	
 	public @NonNull Map<@NonNull String, @Nullable Object> serialize() {
-		Map<String, Object> out = new HashMap<>(7);
+		Map<String, Object> out = new HashMap<>(8);
 		
 		out.put("name", name);
 		
@@ -64,8 +71,10 @@ public record CustomCommandConfig(
 		if(consoleOnly)
 			out.put("console-only", true);
 		
-		if(rawCooldown != null)
-			out.put("cooldown", rawCooldown);
+		if(cooldown != null) {
+			out.put("cooldown", cooldown.rawDuration());
+			out.put("cooldown-message", cooldown.message().serialize());
+		}
 		
 		if(!enabled)
 			out.put("enabled", false);

@@ -3,6 +3,7 @@ package ontey.ccmd;
 import io.papermc.paper.plugin.bootstrap.BootstrapContext;
 import io.papermc.paper.plugin.bootstrap.PluginBootstrap;
 import lombok.NonNull;
+import ontey.api.filelog.FileLog;
 import ontey.ccmd.command.component.CommandComponents;
 import ontey.ccmd.command.execution.Executions;
 import ontey.ccmd.command.registry.CustomCommandRegistry;
@@ -19,6 +20,7 @@ public class CustomCommandBootstrapper implements PluginBootstrap {
 		pluginMeta = context.getPluginMeta();
 		dataDirectory = context.getDataDirectory();
 		pluginsDirectory = context.getPluginSource();
+		fileLog = new FileLog(logger, dataDirectory.toFile());
 		
 		CommandComponents.registerDefaultArgumentTypes();
 		Executions.registerDefaultExecutions();

@@ -14,6 +14,9 @@ import ontey.ccmd.command.component.CommandComponent;
 import ontey.ccmd.command.config.CustomCommandConfig;
 import ontey.ccmd.command.context.ParseContext;
 import ontey.ccmd.command.data.CommandData;
+import ontey.ccmd.cooldown.message.CooldownMessage;
+import ontey.ccmd.cooldown.owner.CooldownOwner;
+import org.bukkit.command.BlockCommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Contract;
@@ -120,14 +123,26 @@ public interface CommandSectionLike {
 	}
 	
 	private void checkAndSetCooldown(@NonNull CommandSourceStack source) throws CommandSyntaxException {
-		if(!(source.getSender() instanceof Player player))
+		var owner = switch(source.getExecutor()) {
+			case Player player -> CooldownOwner.player(player);
+			case null -> switch(source.getSender()) {
+				case BlockCommandSender blockSender -> CooldownOwner.block(blockSender.getBlock());
+				case ConsoleCommandSender _ -> CooldownOwner.console();
+				default -> null;
+			};
+			default -> null;
+		};
+		
+		if(owner == null)
 			return;
 		
-		var lastExecutionTime = data().getLastExecutionTime(player);
+		var lastExecutionTime = data().getLastExecutionTime(owner);
+		var cooldown = values().cooldown();
+		var message = cooldown == null ? CooldownMessage.defaultMessage() : cooldown.message();
 		
 		if(lastExecutionTime != null && !lastExecutionTime.isExpired())
-			throw Arg.simpleException("Command is on a cooldown! Wait " + lastExecutionTime.formatRemaining());
+			throw Arg.simpleException(message.format(lastExecutionTime.formatRemaining()));
 		
-		data().setLastExecutionTime(player);
+		data().setLastExecutionTime(owner);
 	}
 }

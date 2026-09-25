@@ -4,25 +4,34 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import ontey.ccmd.command.CommandSectionLike;
 import ontey.ccmd.cooldown.LastExecutionTime;
-import org.bukkit.entity.Player;
+import ontey.ccmd.cooldown.owner.CooldownOwner;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 /// Mutable data of a command (section)
 
 @RequiredArgsConstructor
 public class CommandData {
 	
+	@NonNull
 	private static final Map<CommandSectionLike, CommandData> data = new HashMap<>();
+	
+	@NonNull
+	public static Map<CommandSectionLike, CommandData> getData() {
+		return Map.copyOf(data);
+	}
 	
 	@NonNull
 	private final CommandSectionLike sectionLike;
 	
 	@Nullable
-	private Map<UUID, LastExecutionTime> cooldowns;
+	private Map<CooldownOwner, LastExecutionTime> lastExecutionTimes;
+	
+	public @NonNull Map<CooldownOwner, LastExecutionTime> getLastExecutionTimes() {
+		return lastExecutionTimes == null ? Map.of() : Map.copyOf(lastExecutionTimes);
+	}
 	
 	@NonNull
 	public static CommandData getOrCreateData(@NonNull CommandSectionLike sectionLike) {
@@ -30,21 +39,24 @@ public class CommandData {
 	}
 	
 	@Nullable
-	public LastExecutionTime getLastExecutionTime(@NonNull Player player) {
-		if(cooldowns == null)
+	public LastExecutionTime getLastExecutionTime(@NonNull CooldownOwner owner) {
+		if(lastExecutionTimes == null)
 			return null;
 		
-		return cooldowns.get(player.getUniqueId());
+		return lastExecutionTimes.get(owner);
 	}
 	
-	public void setLastExecutionTime(@NonNull Player player, long lastExecutionTime) {
-		if(cooldowns == null)
-			cooldowns = new HashMap<>();
+	public void setLastExecutionTime(@NonNull CooldownOwner owner, long lastExecutionTime) {
+		if(lastExecutionTimes == null)
+			lastExecutionTimes = new HashMap<>();
 		
-		cooldowns.put(player.getUniqueId(), new LastExecutionTime(sectionLike.values().cooldown(), lastExecutionTime));
+		var cooldown = sectionLike.values().cooldown();
+		
+		if(cooldown != null)
+			lastExecutionTimes.put(owner, new LastExecutionTime(cooldown.duration(), lastExecutionTime));
 	}
 	
-	public void setLastExecutionTime(@NonNull Player player) {
-		setLastExecutionTime(player, System.currentTimeMillis());
+	public void setLastExecutionTime(@NonNull CooldownOwner owner) {
+		setLastExecutionTime(owner, System.currentTimeMillis());
 	}
 }

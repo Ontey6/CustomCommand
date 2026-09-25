@@ -12,7 +12,9 @@ import ontey.api.loader.AutoRegistered;
 import ontey.ccmd.command.CommandSectionLike;
 import ontey.ccmd.command.CustomCommand;
 import ontey.ccmd.command.CustomCommandNode;
+import ontey.ccmd.command.data.CommandData;
 import ontey.ccmd.command.registry.CustomCommandRegistry;
+import ontey.ccmd.cooldown.message.CooldownMessage;
 import ontey.ccmd.updater.Updater;
 import org.bukkit.command.CommandSender;
 
@@ -40,7 +42,8 @@ public class CustomCommandCommand extends Command {
 		  .then(command())
 		  .then(help())
 		  .then(reload())
-		  .then(version());
+		  .then(version())
+		  .then(cooldowns());
 	}
 	
 	private static void sendConditional(CommandSender sender, List<String> selected, String key, Object value, String description) {
@@ -124,14 +127,16 @@ public class CustomCommandCommand extends Command {
 				var consoleOnly = values.consoleOnly();
 				var enabled = values.enabled();
 				var aliases = values.aliases();
-				var cooldown = values.rawCooldown();
+				var cooldown = values.cooldown();
+				var cooldownDuration = cooldown == null ? null : cooldown.rawDuration();
+				var cooldownMessage = cooldown == null ? CooldownMessage.defaultMessage() : cooldown.message();
 				
 				sender.sendMessage(Component.text(command.name(), enabled ? NamedTextColor.GREEN : NamedTextColor.RED));
 				sendConditional(sender, selected, "description", description, "A short description of what the command does");
 				sendConditional(sender, selected, "permission", permission, "The permission players need to run the command");
 				sendConditional(sender, selected, "aliases", aliases, "Commands that do the same things as this command with a different name");
 				sendConditional(sender, selected, "console_only", consoleOnly, "Whether the command can only be run as the console");
-				sendConditional(sender, selected, "cooldown", cooldown, "The cooldown of this command");
+				sendConditional(sender, selected, "cooldown", cooldownDuration, cooldownMessage.serialize());
 				sendConditional(sender, selected, "children", command.children().stream().map(CommandSectionLike::name).toList(), "The children of the command");
 			}
 			
@@ -199,7 +204,7 @@ public class CustomCommandCommand extends Command {
 			  sender.sendPlainMessage("Reloading...");
 			  
 			  CustomCommandRegistry.reloadCommands();
-			  sender.sendPlainMessage("Finished reloading! Look at the console to see if there are any errors");
+			  sender.sendPlainMessage("Finished reloading! Check console for errors");
 			  
 			  return SUCCESS;
 		  });
@@ -214,14 +219,16 @@ public class CustomCommandCommand extends Command {
 			var consoleOnly = values.consoleOnly();
 			var enabled = values.enabled();
 			var aliases = values.aliases();
-			var cooldown = values.rawCooldown();
+			var cooldown = values.cooldown();
+			var cooldownDuration = cooldown == null ? null : cooldown.rawDuration();
+			var cooldownMessage = cooldown == null ? CooldownMessage.defaultMessage() : cooldown.message();
 			
 			sender.sendMessage(Component.text(section.name(), enabled ? NamedTextColor.GREEN : NamedTextColor.RED));
 			sender.sendMessage(keyValue("description", description, "A short description of what the command does"));
 			sender.sendMessage(keyValue("permission", permission, "The permission players need to run the command"));
 			sender.sendMessage(keyValue("aliases", aliases, "Commands that do the same things as this command with a different name"));
 			sender.sendMessage(keyValue("console_only", consoleOnly, "Whether the command can only be run as the console"));
-			sender.sendMessage(keyValue("cooldown", cooldown, "The cooldown of this command"));
+			sender.sendMessage(keyValue("cooldown", cooldownDuration, cooldownMessage.serialize()));
 			sender.sendMessage(keyValue("children", section.children().stream().map(CommandSectionLike::name).toList(), "The children of the command (section)"));
 			
 			return SUCCESS;
@@ -262,5 +269,40 @@ public class CustomCommandCommand extends Command {
 		addHelpNodes(base, new ArrayList<>(CustomCommandRegistry.getRegisteredCommands().stream().map(CustomCommandNode::getCustomCommand).toList()));
 		
 		return base;
+	}
+	
+	private LiteralArgumentBuilder<CommandSourceStack> cooldowns() {
+		return Arg.literal("cooldowns")
+		  .executes(ctx -> {
+			  var sender = ctx.getSource().getSender();
+			  
+			  sender.sendMessage(Component.text("Cooldowns", NamedTextColor.YELLOW));
+			  
+			  for(var entry : CommandData.getData().entrySet()) {
+				 var name = entry.getKey().name();
+				 var lastExecutionTimes = entry.getValue().getLastExecutionTimes();
+				 
+				 if(lastExecutionTimes.isEmpty())
+					 continue;
+				 
+				 sender.sendMessage(
+					Component
+					  .text("• ", NamedTextColor.GRAY)
+					  .append(Component.text(name, NamedTextColor.WHITE))
+				 );
+				 
+				 for(var entry0 : lastExecutionTimes.entrySet()) {
+					 var owner = entry0.getKey();
+					 var lastExecutionTime = entry0.getValue();
+					 
+					 sender.sendMessage(Component.text("  ◦ ", NamedTextColor.GRAY)
+					   .append(Component.text(owner.displayName(), NamedTextColor.YELLOW))
+					   .append(Component.text(": ", NamedTextColor.WHITE))
+					   .append(Component.text(lastExecutionTime.formatRemaining(), NamedTextColor.YELLOW)));
+				 }
+			  }
+			  
+			  return SUCCESS;
+		  });
 	}
 }
