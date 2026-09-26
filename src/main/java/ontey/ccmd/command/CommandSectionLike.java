@@ -8,16 +8,19 @@ import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import lombok.NonNull;
+import net.minecraft.network.chat.Component;
 import ontey.api.command.argument.Arg;
 import ontey.ccmd.command.component.ArgumentCommandComponent;
 import ontey.ccmd.command.component.CommandComponent;
 import ontey.ccmd.command.config.CustomCommandConfig;
 import ontey.ccmd.command.context.ParseContext;
 import ontey.ccmd.command.data.CommandData;
+import ontey.ccmd.command.execution.Execution;
 import ontey.ccmd.cooldown.message.CooldownMessage;
 import ontey.ccmd.cooldown.owner.CooldownOwner;
 import org.bukkit.command.BlockCommandSender;
 import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.craftbukkit.command.VanillaCommandWrapper;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
@@ -75,16 +78,7 @@ public interface CommandSectionLike {
 		var execution = component().execution();
 		var requirement = component().requirement();
 		
-		Command<CommandSourceStack> command;
-		
-		if(execution == null)
-			command = null;
-		else
-			command = ctx -> {
-				checkAndSetCooldown(ctx.getSource());
-				
-				return execution.parseExecution(context.withSection("executes")).run(ctx);
-			};
+		Command<CommandSourceStack> command = createCommand(context, execution);
 		
 		Predicate<CommandSourceStack> brigRequirement = requirement == null
 		  ? null
@@ -107,6 +101,30 @@ public interface CommandSectionLike {
 		}
 		
 		return base;
+	}
+	
+	default @Nullable Command<CommandSourceStack> createCommand(@NonNull ParseContext context, Execution execution) {
+		Command<CommandSourceStack> command;
+		
+		if(execution == null)
+			command = null;
+		else
+			command = ctx -> {
+				try {
+					checkAndSetCooldown(ctx.getSource());
+					
+					return execution.parseExecution(context.withSection("executes")).run(ctx);
+				} catch(CommandSyntaxException e) { //TODO find out why command blocks' "last output" doesn't work when the plugin is on the server
+					if(ctx.getSource().getSender() instanceof BlockCommandSender blockSender) {
+						var source = VanillaCommandWrapper.getListener(blockSender);
+						
+						source.sendFailure(Component.literal(e.getMessage()));
+					}
+					
+					throw e;
+				}
+			};
+		return command;
 	}
 	
 	private @NonNull CommandNode<CommandSourceStack> createBase(@NonNull ParseContext context, @Nullable Command<CommandSourceStack> command, @Nullable Predicate<CommandSourceStack> finalRequirement) {
