@@ -5,9 +5,24 @@ api-version: '1.21'
 authors: [ Ontey ]
 loader: ontey.ccmd.CustomCommandLoader
 bootstrapper: ontey.ccmd.CustomCommandBootstrapper
+folia-supported: true
 
 dependencies:
   server:
     PlaceholderAPI:
       load: OMIT
       required: false
+
+permissions:
+  ccmd.command.custom-command:
+    default: op
+    description: 'Allows usage of the /ccmd command'
+    children:
+      ccmd.command.custom-command.help:
+        default: true
+      ccmd.command.custom-command.update: true
+      ccmd.command.custom-command.commands: true
+      ccmd.command.custom-command.command: true
+      ccmd.command.custom-command.reload: true
+      ccmd.command.custom-command.cooldowns: true
+      ccmd.command.custom-command.cooldownless: true

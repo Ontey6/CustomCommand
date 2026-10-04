@@ -1,9 +1,13 @@
 package ontey.ccmd.command.data;
 
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import ontey.ccmd.command.CommandSectionLike;
-import ontey.ccmd.cooldown.LastExecutionTime;
+import ontey.ccmd.command.CustomCommand;
+import ontey.ccmd.cooldown.Cooldown;
+import ontey.ccmd.cooldown.execution.ExecutionTime;
 import ontey.ccmd.cooldown.owner.CooldownOwner;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,18 +23,22 @@ public class CommandData {
 	private static final Map<CommandSectionLike, CommandData> data = new HashMap<>();
 	
 	@NonNull
-	public static Map<CommandSectionLike, CommandData> getData() {
-		return Map.copyOf(data);
-	}
-	
-	@NonNull
 	private final CommandSectionLike sectionLike;
 	
 	@Nullable
-	private Map<CooldownOwner, LastExecutionTime> lastExecutionTimes;
+	private Map<CooldownOwner, ExecutionTime> lastExecutionTimes;
 	
-	public @NonNull Map<CooldownOwner, LastExecutionTime> getLastExecutionTimes() {
-		return lastExecutionTimes == null ? Map.of() : Map.copyOf(lastExecutionTimes);
+	@Getter
+	@Setter
+	private CustomCommand root;
+	
+	@Getter
+	@Setter
+	private CommandSectionLike parent;
+	
+	@NonNull
+	public static Map<CommandSectionLike, CommandData> getData() {
+		return Map.copyOf(data);
 	}
 	
 	@NonNull
@@ -38,25 +46,35 @@ public class CommandData {
 		return data.computeIfAbsent(sectionLike, CommandData::new);
 	}
 	
+	public @NonNull Map<CooldownOwner, ExecutionTime> getLastExecutionTimes() {
+		return lastExecutionTimes == null ? Map.of() : Map.copyOf(lastExecutionTimes);
+	}
+	
 	@Nullable
-	public LastExecutionTime getLastExecutionTime(@NonNull CooldownOwner owner) {
+	public ExecutionTime getLastExecutionTime(@NonNull CooldownOwner owner) {
 		if(lastExecutionTimes == null)
 			return null;
 		
 		return lastExecutionTimes.get(owner);
 	}
 	
-	public void setLastExecutionTime(@NonNull CooldownOwner owner, long lastExecutionTime) {
+	public void setExecutionTime(@NonNull CooldownOwner owner) {
 		if(lastExecutionTimes == null)
 			lastExecutionTimes = new HashMap<>();
 		
 		var cooldown = sectionLike.values().cooldown();
 		
-		if(cooldown != null)
-			lastExecutionTimes.put(owner, new LastExecutionTime(cooldown.duration(), lastExecutionTime));
+		if(cooldown != Cooldown.ZERO)
+			lastExecutionTimes.compute(owner, (_, previousExecutionTime) -> previousExecutionTime == null ? ExecutionTime.basic(cooldown) : previousExecutionTime.createNext());
 	}
 	
-	public void setLastExecutionTime(@NonNull CooldownOwner owner) {
-		setLastExecutionTime(owner, System.currentTimeMillis());
+	public void setExecutionTime(@NonNull CooldownOwner owner, ExecutionTime executionTime) {
+		if(lastExecutionTimes == null)
+			lastExecutionTimes = new HashMap<>();
+		
+		var cooldown = sectionLike.values().cooldown();
+		
+		if(cooldown != Cooldown.ZERO)
+			lastExecutionTimes.put(owner, executionTime);
 	}
 }

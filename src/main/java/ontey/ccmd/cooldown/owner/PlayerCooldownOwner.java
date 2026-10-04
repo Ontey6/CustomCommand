@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /// A [CooldownOwner] that uses a player's UUID to identify equality
+///
 /// @param uuid The UUID of the player
 /// @param name The name of the player. Not stored on restarts.
 

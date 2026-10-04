@@ -8,7 +8,7 @@ import ontey.ccmd.format.Formatter;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
 
-import static ontey.ccmd.util.DurationUtil.*;
+import static ontey.ccmd.util.DurationUtil.parseDuration;
 
 public final class TitleUtil {
 	

@@ -3,15 +3,20 @@ package ontey.ccmd.command.registry;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.papermc.paper.plugin.lifecycle.event.LifecycleEventManager;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
+import lombok.Getter;
 import lombok.NonNull;
 import ontey.api.config.yaml.file.YamlFile;
 import ontey.api.filelog.FileLog;
+import ontey.ccmd.command.CommandSectionLike;
 import ontey.ccmd.command.CustomCommand;
 import ontey.ccmd.command.CustomCommandNode;
+import ontey.ccmd.command.RootCustomCommandNode;
 import ontey.ccmd.command.context.ParseContext;
+import ontey.ccmd.command.data.CommandData;
 import ontey.ccmd.command.exception.ParseException;
 import ontey.ccmd.command.parser.CustomCommandParser;
 import ontey.ccmd.plugincommand.CustomCommandCommand;
+import ontey.ccmd.shared.SharedConstants;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.CraftServer;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
@@ -24,7 +29,6 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -38,8 +42,15 @@ public final class CustomCommandRegistry {
 	@NonNull
 	private static final List<CustomCommandNode> registeredCommands = new ArrayList<>();
 	
-	public static List<CustomCommandNode> getRegisteredCommands() {
+	@Getter
+	private static final RootCustomCommandNode rootNode = new RootCustomCommandNode();
+	
+	public static List<CustomCommandNode> getRegisteredCommandNodes() {
 		return List.copyOf(registeredCommands);
+	}
+	
+	public static List<CustomCommand> getRegisteredCommands() {
+		return registeredCommands.stream().map(CustomCommandNode::getCustomCommand).toList();
 	}
 	
 	public static void registerCustomCommands(@Nullable LifecycleEventManager<?> lifecycleManager, boolean useNMS) {
@@ -63,9 +74,11 @@ public final class CustomCommandRegistry {
 				var root = cmd.build(parseContext);
 				
 				registeredCommands.add(root);
+				rootNode.addChild(root);
+				createData(cmd, cmd, null);
 			}
 			
-			if(useNMS) {
+			if(useNMS) { //TODO dependency injection via enum
 				var commands = ((CraftServer) Bukkit.getServer()).getServer().getCommands();
 				var dispatcher = commands.getDispatcher();
 				var rootNode = dispatcher.getRoot();
@@ -77,9 +90,15 @@ public final class CustomCommandRegistry {
 				rootNode.addChild((LiteralCommandNode) new CustomCommandCommand().build().root());
 			} else {
 				lifecycleManager.registerEventHandler(LifecycleEvents.COMMANDS, event -> {
-					for(var command : registeredCommands)
-						if(command.getCustomCommand().values().enabled())
-							event.registrar().register(command);
+					for(var command : registeredCommands) {
+						var values = command.getCustomCommand().values();
+						if(values.enabled()) {
+							var description = values.description();
+							var aliases = values.aliases();
+							
+							event.registrar().register(command, description, aliases);
+						}
+					}
 					
 					event.registrar().register(new CustomCommandCommand().build().root());
 				});
@@ -91,6 +110,18 @@ public final class CustomCommandRegistry {
 			logger.error("An unexpected exception occurred");
 			fileLog.saveStackTrace(e);
 		}
+	}
+	
+	/// Recursively creates [CommandData] for the section
+	///
+	/// @param base The base section everything is relative to
+	
+	private static void createData(@NonNull CommandSectionLike base, @NonNull CustomCommand root, @Nullable CommandSectionLike parent) {
+		base.data().setRoot(root);
+		base.data().setParent(parent);
+		
+		for(var child : base.children())
+			createData(child, root, base);
 	}
 	
 	/// Reloads all commands.
@@ -135,10 +166,20 @@ public final class CustomCommandRegistry {
 	}
 	
 	public static File[] getCommandFiles(FileLog fileLog) {
-		File dir = new File(dataDirectory.toFile(), "commands");
+		File dir = dataDirectory.resolve("commands").toFile();
 		
 		if(!dir.exists())
 			createCommandsDirectoryAndExamples(dir, fileLog);
+		
+		if(!dataDirectory.resolve("cooldowns.yml").toFile().exists()) {
+			try {
+				copyResource("cooldowns.yml", "cooldowns.yml");
+			} catch(IOException e) {
+				logger.warn("Couldn't create cooldowns.yml");
+				fileLog.saveStackTrace(e);
+			}
+		}
+		SharedConstants.cooldownStorage = new YamlFile(dataDirectory.resolve("cooldowns.yml").toFile());
 		
 		return getFiles(dir);
 	}
@@ -148,47 +189,29 @@ public final class CustomCommandRegistry {
 			throw new IllegalStateException("Could not create commands directory");
 		
 		try {
-			copyExamples(commandsDirectory.toPath());
-			dataDirectory.toFile().mkdir();
-			copyMessageJavascript();
+			copyResource("examples.yml", "commands/examples.yml");
+			copyResource("message.js", "javascript/message.js");
 		} catch(Exception e) {
 			logger.warn("Couldn't create examples (examples.yml or message.js)");
 			fileLog.saveStackTrace(e);
 		}
 	}
 	
-	private static void copyExamples(Path targetDirectory) throws IOException {
-		URL url = CustomCommandRegistry.class.getClassLoader().getResource("examples.yml");
+	private static void copyResource(String resourcePath, String outputPath) throws IOException {
+		URL url = CustomCommandRegistry.class.getClassLoader().getResource(resourcePath);
 		
 		if(url == null)
-			throw new FileNotFoundException("Could not find the " + "examples.yml" + " resource in the JAR, not copying it");
+			throw new FileNotFoundException("Could not find the " + resourcePath + " resource in the JAR, not copying it");
 		
 		URLConnection connection = url.openConnection();
 		connection.setUseCaches(false);
-		var resourcePath = targetDirectory.resolve("examples.yml");
+		var resource = dataDirectory.resolve(outputPath);
+		resource.getParent().toFile().mkdirs();
 		
-		if(resourcePath.toFile().exists())
-			throw new FileAlreadyExistsException("Target file for " + "examples.yml" + " already exists");
+		if(resource.toFile().exists())
+			throw new FileAlreadyExistsException("Target file for " + resourcePath + " already exists");
 		
-		Files.copy(connection.getInputStream(), resourcePath);
-	}
-	
-	private static void copyMessageJavascript() throws IOException {
-		URL url = CustomCommandRegistry.class.getClassLoader().getResource("javascript/message.js");
-		
-		if(url == null)
-			throw new FileNotFoundException("Could not find the javascript/message.js resource in the JAR, not copying it");
-		
-		URLConnection connection = url.openConnection();
-		connection.setUseCaches(false);
-		var resourcePath = dataDirectory.resolve("javascript/message.js");
-		
-		dataDirectory.resolve("javascript").toFile().mkdir();
-		
-		if(resourcePath.toFile().exists())
-			throw new FileAlreadyExistsException("Target file for javascript/message.js already exists");
-		
-		Files.copy(connection.getInputStream(), resourcePath);
+		Files.copy(connection.getInputStream(), resource);
 	}
 	
 	private static void addCommands(File file, List<CustomCommand> out, FileLog fileLog) {

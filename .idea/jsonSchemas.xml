@@ -8,6 +8,7 @@
             <SchemaInfo>
               <option name="name" value="Paper paper-plugin.yml" />
               <option name="relativePathToSchema" value="https://www.schemastore.org/paper-plugin.json" />
+              <option name="schemaVersion" value="JSON Schema 7" />
               <option name="applicationDefined" value="true" />
               <option name="patterns">
                 <list>

@@ -16,12 +16,10 @@ import ontey.ccmd.command.config.CustomCommandConfig;
 import ontey.ccmd.command.context.ParseContext;
 import ontey.ccmd.command.data.CommandData;
 import ontey.ccmd.command.execution.Execution;
-import ontey.ccmd.cooldown.message.CooldownMessage;
 import ontey.ccmd.cooldown.owner.CooldownOwner;
 import org.bukkit.command.BlockCommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.craftbukkit.command.VanillaCommandWrapper;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
@@ -103,7 +101,7 @@ public interface CommandSectionLike {
 		return base;
 	}
 	
-	default @Nullable Command<CommandSourceStack> createCommand(@NonNull ParseContext context, Execution execution) {
+	default @Nullable Command<CommandSourceStack> createCommand(@NonNull ParseContext context, @Nullable Execution execution) {
 		Command<CommandSourceStack> command;
 		
 		if(execution == null)
@@ -114,7 +112,7 @@ public interface CommandSectionLike {
 					checkAndSetCooldown(ctx.getSource());
 					
 					return execution.parseExecution(context.withSection("executes")).run(ctx);
-				} catch(CommandSyntaxException e) { //TODO find out why command blocks' "last output" doesn't work when the plugin is on the server
+				} catch(CommandSyntaxException e) { // command blocks' "last output" only works sometimes
 					if(ctx.getSource().getSender() instanceof BlockCommandSender blockSender) {
 						var source = VanillaCommandWrapper.getListener(blockSender);
 						
@@ -129,7 +127,7 @@ public interface CommandSectionLike {
 	
 	private @NonNull CommandNode<CommandSourceStack> createBase(@NonNull ParseContext context, @Nullable Command<CommandSourceStack> command, @Nullable Predicate<CommandSourceStack> finalRequirement) {
 		if(this instanceof CustomCommand cmd)
-			return new CustomCommandNode(cmd, name(), command, finalRequirement);
+			return new CustomCommandNode(cmd, command, finalRequirement);
 		else if(component() instanceof ArgumentCommandComponent argumentComponent) {
 			var suggestions = argumentComponent.suggestions();
 			SuggestionProvider<CommandSourceStack> brigSuggestions = suggestions == null ? null : suggestions.parseSuggestions(context.withSection("suggests"));
@@ -141,26 +139,16 @@ public interface CommandSectionLike {
 	}
 	
 	private void checkAndSetCooldown(@NonNull CommandSourceStack source) throws CommandSyntaxException {
-		var owner = switch(source.getExecutor()) {
-			case Player player -> CooldownOwner.player(player);
-			case null -> switch(source.getSender()) {
-				case BlockCommandSender blockSender -> CooldownOwner.block(blockSender.getBlock());
-				case ConsoleCommandSender _ -> CooldownOwner.console();
-				default -> null;
-			};
-			default -> null;
-		};
+		var owner = CooldownOwner.of(source.getSender());
 		
 		if(owner == null)
 			return;
 		
 		var lastExecutionTime = data().getLastExecutionTime(owner);
-		var cooldown = values().cooldown();
-		var message = cooldown == null ? CooldownMessage.defaultMessage() : cooldown.message();
 		
 		if(lastExecutionTime != null && !lastExecutionTime.isExpired())
-			throw Arg.simpleException(message.format(lastExecutionTime.formatRemaining()));
+			throw Arg.simpleException(lastExecutionTime.formatCooldownMessage());
 		
-		data().setLastExecutionTime(owner);
+		data().setExecutionTime(owner);
 	}
 }

@@ -14,8 +14,8 @@ public class CustomCommandNode extends LiteralCommandNode<CommandSourceStack> {
 	@Getter
 	private final CustomCommand customCommand;
 	
-	public CustomCommandNode(CustomCommand customCommand, String literal, Command<CommandSourceStack> command, Predicate<CommandSourceStack> requirement) {
-		super(literal, command, requirement, null, null, false);
+	public CustomCommandNode(CustomCommand customCommand, Command<CommandSourceStack> command, Predicate<CommandSourceStack> requirement) {
+		super(customCommand.name(), command, requirement, null, null, false);
 		this.customCommand = customCommand;
 		apiCommandMeta = new APICommandMeta(SharedConstants.pluginMeta, customCommand.values().description(), customCommand.values().aliases(), "CustomCommand");
 	}

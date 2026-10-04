@@ -13,5 +13,10 @@ import java.time.Duration;
 /// @param message The message displayed when the command is run but on cooldown
 
 public record Cooldown(@NonNull Duration duration, @NonNull String rawDuration, @NonNull CooldownMessage message) {
-
+	
+	public static final Cooldown ZERO = new Cooldown(Duration.ZERO, "0s", CooldownMessage.DEFAULT_COOLDOWN_MESSAGE);
+	
+	public static Cooldown zero(CooldownMessage message) {
+		return new Cooldown(Duration.ZERO, "0s", message);
+	}
 }

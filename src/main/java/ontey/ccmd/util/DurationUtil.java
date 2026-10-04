@@ -9,6 +9,14 @@ import java.time.Duration;
 public final class DurationUtil {
 	
 	public static Duration parseDuration(@Nullable String input, @NonNull String fieldName, @NonNull ParseContext context) {
+		try {
+			return parseDuration(input, fieldName);
+		} catch(IllegalArgumentException e) {
+			throw context.newException(e.getMessage());
+		}
+	}
+	
+	public static Duration parseDuration(@Nullable String input, @NonNull String fieldName) {
 		if(input == null || input.isBlank())
 			return Duration.ZERO;
 		
@@ -17,6 +25,9 @@ public final class DurationUtil {
 		
 		for(int i = 0; i < input.length(); i++) {
 			char c = input.charAt(i);
+			
+			if(Character.isWhitespace(c))
+				continue;
 			
 			if(Character.isDigit(c)) {
 				currentValue = currentValue * 10 + toNumber(c);
@@ -42,7 +53,7 @@ public final class DurationUtil {
 				continue;
 			}
 			
-			throw context.newException("'" + fieldName + "' is an invalid time format: '" + input + "'");
+			throw new IllegalArgumentException("'" + fieldName + "' is an invalid time format: '" + input + "'");
 		}
 		
 		return totalDuration;

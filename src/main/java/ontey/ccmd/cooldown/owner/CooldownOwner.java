@@ -6,9 +6,13 @@ import net.kyori.adventure.key.Key;
 import ontey.api.serialization.CombinedConfigSerializable;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
+import org.bukkit.command.BlockCommandSender;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -18,32 +22,14 @@ import java.util.UUID;
 
 public interface CooldownOwner extends CombinedConfigSerializable {
 	
-	/// @return A human-readable name
-	
-	@NonNull
-	@Contract(pure = true)
-	String displayName();
-	
-	/// @return The serialized extra data this `CooldownOwner` carries
-	
-	@NonNull
-	@Contract(pure = true)
-	Map<String, String> serializeExtraData();
-	
-	/// @return A string representation of the type that is used for serialization
-	
-	@NonNull
-	@Contract(pure = true)
-	String type();
-	
-	@Override
-	default @NonNull Map<String, Object> serialize() {
-		Map<String, Object> map = new HashMap<>();
-		
-		map.put("type", type());
-		map.putAll(serializeExtraData());
-		
-		return Map.copyOf(map);
+	@Nullable
+	static CooldownOwner of(@NonNull CommandSender sender) {
+		return switch(sender) {
+			case Player player -> CooldownOwner.player(player);
+			case BlockCommandSender blockSender -> CooldownOwner.block(blockSender.getBlock());
+			case ConsoleCommandSender _ -> CooldownOwner.console();
+			default -> null;
+		};
 	}
 	
 	@SuppressWarnings("PatternValidation")
@@ -111,5 +97,34 @@ public interface CooldownOwner extends CombinedConfigSerializable {
 	
 	static CooldownOwner console() {
 		return ConsoleCooldownOwner.INSTANCE;
+	}
+	
+	/// @return A human-readable name
+	
+	@NonNull
+	@Contract(pure = true)
+	String displayName();
+	
+	/// @return The serialized extra data this `CooldownOwner` carries
+	
+	@NonNull
+	@Contract(pure = true)
+	Map<String, String> serializeExtraData();
+	
+	/// @return A string representation of the type that is used for serialization
+	
+	@NonNull
+	@Contract(pure = true)
+	String type();
+	
+	@Override
+	@Unmodifiable
+	default @NonNull Map<String, Object> serialize() {
+		Map<String, Object> map = new HashMap<>();
+		
+		map.put("type", type());
+		map.putAll(serializeExtraData());
+		
+		return Map.copyOf(map);
 	}
 }

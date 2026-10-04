@@ -1,7 +1,10 @@
 package ontey.ccmd.plugincommand;
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.suggestion.SuggestionProvider;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
+import lombok.NonNull;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
@@ -11,29 +14,45 @@ import ontey.api.command.argument.Arg;
 import ontey.api.loader.AutoRegistered;
 import ontey.ccmd.command.CommandSectionLike;
 import ontey.ccmd.command.CustomCommand;
-import ontey.ccmd.command.CustomCommandNode;
 import ontey.ccmd.command.data.CommandData;
 import ontey.ccmd.command.registry.CustomCommandRegistry;
-import ontey.ccmd.cooldown.message.CooldownMessage;
+import ontey.ccmd.cooldown.execution.CooldownlessExecutionTime;
+import ontey.ccmd.cooldown.execution.ExecutionTime;
+import ontey.ccmd.cooldown.owner.CooldownOwner;
 import ontey.ccmd.updater.Updater;
 import org.bukkit.command.CommandSender;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 import static ontey.ccmd.Main.plugin;
 
 @AutoRegistered
 public class CustomCommandCommand extends Command {
 	
+	private final String PERMISSION = "ccmd.command.custom-command";
+	
+	private final List<String> subPermissions = List.of(
+	  "update",
+	  "commands",
+	  "command",
+	  "help",
+	  "reload",
+	  "cooldowns",
+	  "cooldownless"
+	);
+	
 	public CustomCommandCommand() {
 		super("custom-command");
 		
-		permission = "ccmd.command.custom-command";
+		//permission = "ccmd.command.custom-command";
 		description = "The main command of the CustomCommand plugin by Ontey";
 		aliases.add("ccmd");
 		
 		root
+		  .requires(source -> source.getSender().hasPermission("ccmd.command.custom-command") || subPermissions.stream().anyMatch(node -> hasNodePermission(source, node)))
 		  .executes(versionExecution())
 		  .then(update()
 			 .then(updateForce()))
@@ -43,7 +62,9 @@ public class CustomCommandCommand extends Command {
 		  .then(help())
 		  .then(reload())
 		  .then(version())
-		  .then(cooldowns());
+		  .then(cooldowns())
+		  .then(cooldownless())
+		;
 	}
 	
 	private static void sendConditional(CommandSender sender, List<String> selected, String key, Object value, String description) {
@@ -58,6 +79,10 @@ public class CustomCommandCommand extends Command {
 			 .hoverEvent(HoverEvent.showText(Component.text(description))))
 		  .append(Component.text(": "))
 		  .append(Component.text(String.valueOf(value), NamedTextColor.YELLOW));
+	}
+	
+	private boolean hasNodePermission(CommandSourceStack source, String identifier) {
+		return source.getSender().hasPermission(PERMISSION + "." + identifier);
 	}
 	
 	private com.mojang.brigadier.Command<CommandSourceStack> versionExecution() {
@@ -77,6 +102,7 @@ public class CustomCommandCommand extends Command {
 	
 	private LiteralArgumentBuilder<CommandSourceStack> update() {
 		return Arg.literal("update")
+		  .requires(source -> hasNodePermission(source, "update"))
 		  .executes(ctx -> {
 			  var sender = ctx.getSource().getSender();
 			  var latest = Updater.getLatest();
@@ -110,17 +136,25 @@ public class CustomCommandCommand extends Command {
 	}
 	
 	private LiteralArgumentBuilder<CommandSourceStack> commands() {
-		
 		return Arg.literal("commands")
-		  .executes(commandsCommand(List.of()));
+		  .requires(source -> hasNodePermission(source, "commands"))
+		  .executes(commandsCommand());
 	}
 	
-	private com.mojang.brigadier.Command<CommandSourceStack> commandsCommand(List<String> selected) {
+	private com.mojang.brigadier.Command<CommandSourceStack> commandsCommand() {
 		return ctx -> {
 			var sender = ctx.getSource().getSender();
 			
-			for(var commandNode : CustomCommandRegistry.getRegisteredCommands()) {
-				var command = commandNode.getCustomCommand();
+			var input = ctx.getInput();
+			input = input.substring(input.indexOf(' ') + 1);
+			input = input.substring("commands".length());
+			
+			if(!input.isEmpty())
+				input = input.substring(1);
+			
+			var selected = List.of(input.split(" "));
+			
+			for(var command : CustomCommandRegistry.getRegisteredCommands()) {
 				var values = command.values();
 				var description = values.description();
 				var permission = values.permission();
@@ -128,15 +162,15 @@ public class CustomCommandCommand extends Command {
 				var enabled = values.enabled();
 				var aliases = values.aliases();
 				var cooldown = values.cooldown();
-				var cooldownDuration = cooldown == null ? null : cooldown.rawDuration();
-				var cooldownMessage = cooldown == null ? CooldownMessage.defaultMessage() : cooldown.message();
+				var cooldownDuration = cooldown.rawDuration();
+				var cooldownMessage = cooldown.message().serialize();
 				
 				sender.sendMessage(Component.text(command.name(), enabled ? NamedTextColor.GREEN : NamedTextColor.RED));
 				sendConditional(sender, selected, "description", description, "A short description of what the command does");
 				sendConditional(sender, selected, "permission", permission, "The permission players need to run the command");
 				sendConditional(sender, selected, "aliases", aliases, "Commands that do the same things as this command with a different name");
 				sendConditional(sender, selected, "console_only", consoleOnly, "Whether the command can only be run as the console");
-				sendConditional(sender, selected, "cooldown", cooldownDuration, cooldownMessage.serialize());
+				sendConditional(sender, selected, "cooldown", cooldownDuration, cooldownMessage);
 				sendConditional(sender, selected, "children", command.children().stream().map(CommandSectionLike::name).toList(), "The children of the command");
 			}
 			
@@ -144,42 +178,50 @@ public class CustomCommandCommand extends Command {
 		};
 	}
 	
-	private LiteralArgumentBuilder<CommandSourceStack> commandsWith() {
-		var base = Arg.literal("with");
-		
+	private SuggestionProvider<CommandSourceStack> commandsSuggestions() {
 		var list = List.of("description", "permission", "console_only", "aliases", "cooldown", "children");
 		
-		addWithNodes(base, list, new ArrayList<>());
-		
-		return base;
+		return (_, builder) -> {
+			var inputtedSelection = builder.getRemaining().split(" ");
+			List<String> suggestions = new ArrayList<>(list);
+			
+			for(var item : inputtedSelection)
+				suggestions.remove(item);
+			
+			for(var suggestion : suggestions) {
+				var newLength = inputtedSelection.length - 1;
+				
+				if(list.contains(inputtedSelection[newLength]))
+					newLength += 1;
+				
+				var array = new String[newLength];
+				System.arraycopy(inputtedSelection, 0, array, 0, newLength);
+				var before = String.join(" ", array);
+				
+				builder.suggest(before.isEmpty() ? suggestion : before + " " + suggestion);
+			}
+			
+			return builder.buildFuture();
+		};
 	}
 	
-	private void addWithNodes(LiteralArgumentBuilder<CommandSourceStack> parent, List<String> available, List<String> selected) {
-		for(String feature : available) {
-			var childNode = Arg.literal(feature);
-			
-			List<String> newSelected = new ArrayList<>(selected);
-			newSelected.add(feature);
-			
-			childNode.executes(commandsCommand(newSelected));
-			
-			List<String> newAvailable = new ArrayList<>(available);
-			newAvailable.remove(feature);
-			
-			if(!newAvailable.isEmpty())
-				addWithNodes(childNode, newAvailable, newSelected);
-			
-			parent.then(childNode);
-		}
+	private LiteralArgumentBuilder<CommandSourceStack> commandsWith() {
+		//addWithNodes(base, list, new ArrayList<>());
+		
+		return Arg.literal("with")
+		  .then(Arg.varargs("selection")
+			 .executes(commandsCommand())
+			 .suggests(commandsSuggestions()));
 	}
 	
 	private LiteralArgumentBuilder<CommandSourceStack> command() {
 		var base = Arg.literal("command")
+		  .requires(source -> hasNodePermission(source, "command"))
 		  .executes(_ -> {
 			  throw Arg.simpleException("No command or command section specified");
 		  });
 		
-		addCommandsNodes(base, new ArrayList<>(CustomCommandRegistry.getRegisteredCommands().stream().map(CustomCommandNode::getCustomCommand).toList()));
+		addCommandsNodes(base, new ArrayList<>(CustomCommandRegistry.getRegisteredCommands()));
 		
 		return base;
 	}
@@ -198,6 +240,7 @@ public class CustomCommandCommand extends Command {
 	
 	private LiteralArgumentBuilder<CommandSourceStack> reload() {
 		return Arg.literal("reload")
+		  .requires(source -> hasNodePermission(source, "reload"))
 		  .executes(ctx -> {
 			  var sender = ctx.getSource().getSender();
 			  
@@ -220,15 +263,15 @@ public class CustomCommandCommand extends Command {
 			var enabled = values.enabled();
 			var aliases = values.aliases();
 			var cooldown = values.cooldown();
-			var cooldownDuration = cooldown == null ? null : cooldown.rawDuration();
-			var cooldownMessage = cooldown == null ? CooldownMessage.defaultMessage() : cooldown.message();
+			var cooldownDuration = cooldown.rawDuration();
+			var cooldownMessage = cooldown.message().serialize();
 			
 			sender.sendMessage(Component.text(section.name(), enabled ? NamedTextColor.GREEN : NamedTextColor.RED));
 			sender.sendMessage(keyValue("description", description, "A short description of what the command does"));
 			sender.sendMessage(keyValue("permission", permission, "The permission players need to run the command"));
 			sender.sendMessage(keyValue("aliases", aliases, "Commands that do the same things as this command with a different name"));
 			sender.sendMessage(keyValue("console_only", consoleOnly, "Whether the command can only be run as the console"));
-			sender.sendMessage(keyValue("cooldown", cooldownDuration, cooldownMessage.serialize()));
+			sender.sendMessage(keyValue("cooldown", cooldownDuration, cooldownMessage));
 			sender.sendMessage(keyValue("children", section.children().stream().map(CommandSectionLike::name).toList(), "The children of the command (section)"));
 			
 			return SUCCESS;
@@ -262,47 +305,173 @@ public class CustomCommandCommand extends Command {
 	
 	private LiteralArgumentBuilder<CommandSourceStack> help() {
 		var base = Arg.literal("help")
+		  .requires(source -> hasNodePermission(source, "help"))
 		  .executes(_ -> {
 			  throw Arg.simpleException("No command or command section specified");
 		  });
 		
-		addHelpNodes(base, new ArrayList<>(CustomCommandRegistry.getRegisteredCommands().stream().map(CustomCommandNode::getCustomCommand).toList()));
+		addHelpNodes(base, new ArrayList<>(CustomCommandRegistry.getRegisteredCommands()));
 		
 		return base;
 	}
 	
 	private LiteralArgumentBuilder<CommandSourceStack> cooldowns() {
 		return Arg.literal("cooldowns")
+		  .requires(source -> hasNodePermission(source, "cooldowns"))
 		  .executes(ctx -> {
 			  var sender = ctx.getSource().getSender();
 			  
 			  sender.sendMessage(Component.text("Cooldowns", NamedTextColor.YELLOW));
 			  
 			  for(var entry : CommandData.getData().entrySet()) {
-				 var name = entry.getKey().name();
-				 var lastExecutionTimes = entry.getValue().getLastExecutionTimes();
-				 
-				 if(lastExecutionTimes.isEmpty())
-					 continue;
-				 
-				 sender.sendMessage(
-					Component
-					  .text("• ", NamedTextColor.GRAY)
-					  .append(Component.text(name, NamedTextColor.WHITE))
-				 );
-				 
-				 for(var entry0 : lastExecutionTimes.entrySet()) {
-					 var owner = entry0.getKey();
-					 var lastExecutionTime = entry0.getValue();
-					 
-					 sender.sendMessage(Component.text("  ◦ ", NamedTextColor.GRAY)
-					   .append(Component.text(owner.displayName(), NamedTextColor.YELLOW))
-					   .append(Component.text(": ", NamedTextColor.WHITE))
-					   .append(Component.text(lastExecutionTime.formatRemaining(), NamedTextColor.YELLOW)));
-				 }
+				  var name = entry.getKey().name();
+				  var lastExecutionTimes = entry.getValue().getLastExecutionTimes();
+				  
+				  if(lastExecutionTimes.isEmpty())
+					  continue;
+				  
+				  sender.sendMessage(
+					 Component
+						.text("• ", NamedTextColor.GRAY)
+						.append(Component.text(name, NamedTextColor.WHITE))
+				  );
+				  
+				  for(var entry0 : lastExecutionTimes.entrySet()) {
+					  var owner = entry0.getKey();
+					  var lastExecutionTime = entry0.getValue();
+					  
+					  sender.sendMessage(Component.text("  ◦ ", NamedTextColor.GRAY)
+						 .append(Component.text(owner.displayName(), NamedTextColor.YELLOW))
+						 .append(Component.text(": ", NamedTextColor.WHITE))
+						 .append(Component.text(lastExecutionTime.formatRemaining(), NamedTextColor.YELLOW)));
+				  }
 			  }
 			  
 			  return SUCCESS;
 		  });
 	}
+	
+	private LiteralArgumentBuilder<CommandSourceStack> cooldownless() {
+		return Arg.literal("cooldownless")
+		  .requires(source -> hasNodePermission(source, "cooldownless"))
+		  .then(
+			 Arg.literal("run")
+				.redirect(CustomCommandRegistry.getRootNode().toLiteral(), ctx -> {
+					var sender = ctx.getSource().getSender();
+					var command = cutCooldownlessPrefix(ctx.getInput());
+					var section = findSection(command);
+					var owner = CooldownOwner.of(sender);
+					
+					if(owner == null)
+						throw Arg.simpleException("Can't recognize sender class '" + sender.getClass().getName() + "'");
+					
+					var oldExecutionTime = section.data().getLastExecutionTime(owner);
+					Supplier<ExecutionTime> convertSupplier = oldExecutionTime == null ? () -> ExecutionTime.basic(section.values().cooldown()) : () -> oldExecutionTime;
+					var executionTime = CooldownlessExecutionTime.temporary(convertSupplier);
+					
+					section.data().setExecutionTime(owner, executionTime);
+					
+					return ctx.getSource();
+				})
+		  );
+	}
+	
+	private String cutCooldownlessPrefix(String input) {
+		var index = input.indexOf(' ');
+		input = input.substring(index + 1);
+		
+		return input.substring("cooldownless run ".length());
+	}
+	
+	private CommandSectionLike findSection(String input) throws CommandSyntaxException {
+		return findSection(input.split(" "), 0, CustomCommandRegistry.getRegisteredCommands(), null);
+	}
+	
+	private CommandSectionLike findSection(@NonNull String @NonNull [] args, int index, @NonNull List<? extends CommandSectionLike> selection, @Nullable CommandSectionLike parent) throws CommandSyntaxException {
+		if(index >= args.length) {
+			if(parent == null)
+				throw Arg.simpleException("Couldn't find command");
+			
+			return parent;
+		}
+		
+		var commandName = args[index];
+		CommandSectionLike section = null;
+		
+		for(var command : selection) {
+			if(command.name().equals(commandName))
+				section = command;
+			
+			findSection(args, ++index, command.children(), command);
+		}
+		
+		if(section == null)
+			throw Arg.simpleException("Couldn't find command");
+		
+		return section;
+	}
+	
+	//private LiteralArgumentBuilder<CommandSourceStack> cooldown() {
+	//	return Arg.literal("cooldown");
+	//}
+	//
+	//private LiteralArgumentBuilder<CommandSourceStack> cooldownSet() {
+	//	return Arg.literal("set");
+	//}
+	//
+	//private LiteralArgumentBuilder<CommandSourceStack> cooldownSetPlayer() {
+	//	return Arg.literal("player")
+	//	  .then(Arg.playerProfilesArg("player"));
+	//}
+	//
+	//private LiteralArgumentBuilder<CommandSourceStack> cooldownSetConsole() {
+	//	return Arg.literal("console");
+	//}
+	//
+	//private LiteralArgumentBuilder<CommandSourceStack> cooldownSetBlock() {
+	//	return Arg.literal("block")
+	//	  .then(
+	//		 Arg.blockLocationArg("location")
+	//		   .then(
+	//		     Arg.worldArg("world")
+	//		   )
+	//	  );
+	//}
+	//
+	//private LiteralArgumentBuilder<CommandSourceStack> cooldownTimes() {
+	//	return Arg.literal("convert")
+	//	  .then(cooldownTimeBasic())
+	//	  .then(cooldownTimeContinuing())
+	//	  .then(cooldownTimeDisabledPermanent())
+	//	  .then(cooldownTimeDisabledTemporary()); //TODO infinite recursion
+	//}
+	//
+	//private LiteralCommandNode<CommandSourceStack> cooldownTimeDisabledTemporary() {
+	//
+	//	var node = Arg.literal("disabled_temporary").build();
+	//	var redirectNode = Arg.literal("convert")
+	//	  .then(cooldownTimeBasic())
+	//	  .then(cooldownTimeContinuing())
+	//	  .then(cooldownTimeDisabledPermanent())
+	//	  .then(node)
+	//	  .build();
+	//
+	//
+	//
+	//	return node;
+	//}
+	//
+	//private LiteralArgumentBuilder<CommandSourceStack> cooldownTimeDisabledPermanent() {
+	//	return Arg.literal("disabled_permanent");
+	//}
+	//
+	//private LiteralArgumentBuilder<CommandSourceStack> cooldownTimeBasic() {
+	//	return Arg.literal("basic")
+	//	  .then(Arg.longArg("time-millis", -1L));
+	//}
+	//
+	//private LiteralArgumentBuilder<CommandSourceStack> cooldownTimeContinuing() {
+	//	return Arg.literal("continuing")
+	//	  .then(Arg.stringArg("remaining"));
+	//}
 }

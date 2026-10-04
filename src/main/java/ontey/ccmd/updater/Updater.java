@@ -17,8 +17,8 @@ import java.net.URI;
 import java.util.concurrent.CompletableFuture;
 
 import static ontey.ccmd.Main.plugin;
-import static ontey.ccmd.shared.SharedConstants.logger;
 import static ontey.ccmd.shared.SharedConstants.fileLog;
+import static ontey.ccmd.shared.SharedConstants.logger;
 
 @AutoRegistered
 public class Updater implements Listener {

@@ -30,7 +30,7 @@ public record CustomCommandConfig(
   @Nullable String description,
   @Nullable String permission,
   boolean consoleOnly,
-  @Nullable Cooldown cooldown,
+  @NonNull Cooldown cooldown,
   boolean enabled
 ) implements CombinedConfigSerializable {
 	
@@ -48,7 +48,7 @@ public record CustomCommandConfig(
 		var cooldownDuration = rawCooldownDuration == null ? null : DurationUtil.parseDuration(rawCooldownDuration, "cooldown", context);
 		var rawCooldownMessage = section.getString("cooldown-message");
 		var cooldownMessage = rawCooldownMessage == null ? CooldownMessage.defaultMessage() : CooldownMessage.deserialize(rawCooldownMessage);
-		var cooldown = rawCooldownDuration == null ? null : new Cooldown(cooldownDuration, rawCooldownDuration, cooldownMessage);
+		var cooldown = rawCooldownDuration == null ? Cooldown.ZERO : new Cooldown(cooldownDuration, rawCooldownDuration, cooldownMessage);
 		boolean enabled = section.getBoolean("enabled", true);
 		
 		return new CustomCommandConfig(name, aliases, description, permission, consoleOnly, cooldown, enabled);

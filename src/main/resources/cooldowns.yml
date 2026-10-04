@@ -1,0 +1,27 @@
+# In here, active cooldowns are stored when the server stops
+#
+# Example of all default types
+#
+# some-command:
+#   __cooldowns__:
+#     - type: block
+#       world: 'minecraft:overworld'
+#       x: 0
+#       y: 100
+#       z: 0
+#       cooldown:
+#         type: continuing
+#         remaining: 2m 5s 246ms
+#     - type: player
+#       uuid: #...
+#       remaining-millis: 321435224
+#       cooldown:
+#         type: continuing
+#         remaining: 2d 5s 10ms
+#     - type: console
+#       remaining-millis: 6557243
+#       cooldown:
+#         type: continuing
+#         remaining: 4h 10s 903ms
+#   some-command-section:
+#     __cooldowns__: #...

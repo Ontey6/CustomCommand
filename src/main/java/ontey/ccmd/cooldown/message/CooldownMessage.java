@@ -9,12 +9,6 @@ public interface CooldownMessage {
 	CooldownMessage DEFAULT_COOLDOWN_MESSAGE = new BasicCooldownMessage("Command is on a cooldown! Wait ", "");
 	
 	@NonNull
-	String format(@NonNull String formattedDuration);
-	
-	@NonNull
-	String serialize();
-	
-	@NonNull
 	static CooldownMessage deserialize(@NonNull String input) {
 		if(input.isEmpty())
 			return empty();
@@ -49,4 +43,10 @@ public interface CooldownMessage {
 	static CooldownMessage basic(@NonNull String before, @NonNull String after) {
 		return new BasicCooldownMessage(before, after);
 	}
+	
+	@NonNull
+	String format(@NonNull String formattedDuration);
+	
+	@NonNull
+	String serialize();
 }

@@ -10,11 +10,11 @@ import java.util.Map;
 
 final class ConsoleCooldownOwner implements CooldownOwner {
 	
+	public static final ConsoleCooldownOwner INSTANCE = new ConsoleCooldownOwner();
+	
 	private ConsoleCooldownOwner() {
 	
 	}
-	
-	public static final ConsoleCooldownOwner INSTANCE = new ConsoleCooldownOwner();
 	
 	@Override
 	public @NonNull String displayName() {
