@@ -1,5 +1,6 @@
 package ontey.ccmd.plugincommand;
 
+import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
@@ -8,7 +9,6 @@ import lombok.NonNull;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
-import net.kyori.adventure.text.format.NamedTextColor;
 import ontey.api.command.Command;
 import ontey.api.command.argument.Arg;
 import ontey.api.loader.AutoRegistered;
@@ -19,6 +19,7 @@ import ontey.ccmd.command.registry.CustomCommandRegistry;
 import ontey.ccmd.cooldown.execution.CooldownlessExecutionTime;
 import ontey.ccmd.cooldown.execution.ExecutionTime;
 import ontey.ccmd.cooldown.owner.CooldownOwner;
+import ontey.ccmd.updater.Update;
 import ontey.ccmd.updater.Updater;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.Nullable;
@@ -27,11 +28,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
+import static com.mojang.brigadier.exceptions.CommandSyntaxException.BUILT_IN_EXCEPTIONS;
+import static net.kyori.adventure.text.format.NamedTextColor.*;
 import static ontey.ccmd.Main.plugin;
 
 @AutoRegistered
 public class CustomCommandCommand extends Command {
 	
+	@SuppressWarnings("FieldCanBeLocal")
 	private final String PERMISSION = "ccmd.command.custom-command";
 	
 	private final List<String> subPermissions = List.of(
@@ -41,7 +45,8 @@ public class CustomCommandCommand extends Command {
 	  "help",
 	  "reload",
 	  "cooldowns",
-	  "cooldownless"
+	  "cooldownless",
+	  "version"
 	);
 	
 	public CustomCommandCommand() {
@@ -55,7 +60,8 @@ public class CustomCommandCommand extends Command {
 		  .requires(source -> source.getSender().hasPermission("ccmd.command.custom-command") || subPermissions.stream().anyMatch(node -> hasNodePermission(source, node)))
 		  .executes(versionExecution())
 		  .then(update()
-			 .then(updateForce()))
+			 .then(updateDownload())
+		    .then(updateInfo()))
 		  .then(commands()
 			 .then(commandsWith()))
 		  .then(command())
@@ -78,7 +84,7 @@ public class CustomCommandCommand extends Command {
 		  .append(Component.text(key)
 			 .hoverEvent(HoverEvent.showText(Component.text(description))))
 		  .append(Component.text(": "))
-		  .append(Component.text(String.valueOf(value), NamedTextColor.YELLOW));
+		  .append(Component.text(String.valueOf(value), YELLOW));
 	}
 	
 	private boolean hasNodePermission(CommandSourceStack source, String identifier) {
@@ -87,6 +93,12 @@ public class CustomCommandCommand extends Command {
 	
 	private com.mojang.brigadier.Command<CommandSourceStack> versionExecution() {
 		return ctx -> {
+			if(!hasNodePermission(ctx.getSource(), "version")) {
+				var reader = new StringReader(ctx.getInput());
+				reader.setCursor(ctx.getInput().length());
+				throw BUILT_IN_EXCEPTIONS.dispatcherUnknownCommand().createWithContext(reader);
+			}
+			
 			var sender = ctx.getSource().getSender();
 			
 			sender.sendPlainMessage("Running " + plugin.toString());
@@ -97,7 +109,18 @@ public class CustomCommandCommand extends Command {
 	
 	private LiteralArgumentBuilder<CommandSourceStack> version() {
 		return Arg.literal("version")
+		  .requires(source -> hasNodePermission(source, "version"))
 		  .executes(versionExecution());
+	}
+	
+	@NonNull
+	private Update requireUpdate() throws CommandSyntaxException {
+		var latest = Updater.getLatest();
+		
+		if(latest == null)
+			throw Arg.simpleException("[CustomCommand] Already on the latest version!");
+		
+		return latest;
 	}
 	
 	private LiteralArgumentBuilder<CommandSourceStack> update() {
@@ -105,31 +128,39 @@ public class CustomCommandCommand extends Command {
 		  .requires(source -> hasNodePermission(source, "update"))
 		  .executes(ctx -> {
 			  var sender = ctx.getSource().getSender();
-			  var latest = Updater.getLatest();
-			  
-			  if(latest == null)
-				  throw Arg.simpleException("[CustomCommand] Already on the latest version!");
+			  var latest = requireUpdate();
 			  
 			  sender.sendMessage(latest.getUpdaterMessage());
 			  sender.sendMessage(Component.text("[CustomCommand] ")
 				 .append(Component
-					.text("Click to download (/ccmd update force)", NamedTextColor.YELLOW)
-					.clickEvent(ClickEvent.runCommand("ccmd update force"))));
+					.text("Click to download (/ccmd update download)", YELLOW)
+					.clickEvent(ClickEvent.runCommand("ccmd update download"))));
 			  
 			  return SUCCESS;
 		  });
 	}
 	
-	private LiteralArgumentBuilder<CommandSourceStack> updateForce() {
-		return Arg.literal("force")
+	private LiteralArgumentBuilder<CommandSourceStack> updateDownload() {
+		return Arg.literal("download")
 		  .executes(ctx -> {
 			  var sender = ctx.getSource().getSender();
-			  var latest = Updater.getLatest();
-			  
-			  if(latest == null)
-				  throw Arg.simpleException("[CustomCommand] Already on the latest version!");
+			  var latest = requireUpdate();
 			  
 			  latest.createDownloadUpdateFuture().complete(sender);
+			  
+			  return SUCCESS;
+		  });
+	}
+	
+	private LiteralArgumentBuilder<CommandSourceStack> updateInfo() {
+		return Arg.literal("info")
+		  .executes(ctx -> {
+			  var sender = ctx.getSource().getSender();
+			  var latest = requireUpdate();
+			  
+			  sender.sendMessage(Component.text("Version: ").append(Component.text(latest.version(), YELLOW)));
+			  sender.sendMessage(Component.text("Download URL: ").append(Component.text(latest.downloadURL(), YELLOW).clickEvent(ClickEvent.openUrl(latest.downloadURL()))));
+			  sender.sendMessage(Component.text("Description: ").append(Component.text(latest.description().replace("\n", "             \n"), YELLOW)));
 			  
 			  return SUCCESS;
 		  });
@@ -165,7 +196,7 @@ public class CustomCommandCommand extends Command {
 				var cooldownDuration = cooldown.rawDuration();
 				var cooldownMessage = cooldown.message().serialize();
 				
-				sender.sendMessage(Component.text(command.name(), enabled ? NamedTextColor.GREEN : NamedTextColor.RED));
+				sender.sendMessage(Component.text(command.name(), enabled ? GREEN : RED));
 				sendConditional(sender, selected, "description", description, "A short description of what the command does");
 				sendConditional(sender, selected, "permission", permission, "The permission players need to run the command");
 				sendConditional(sender, selected, "aliases", aliases, "Commands that do the same things as this command with a different name");
@@ -266,7 +297,7 @@ public class CustomCommandCommand extends Command {
 			var cooldownDuration = cooldown.rawDuration();
 			var cooldownMessage = cooldown.message().serialize();
 			
-			sender.sendMessage(Component.text(section.name(), enabled ? NamedTextColor.GREEN : NamedTextColor.RED));
+			sender.sendMessage(Component.text(section.name(), enabled ? GREEN : RED));
 			sender.sendMessage(keyValue("description", description, "A short description of what the command does"));
 			sender.sendMessage(keyValue("permission", permission, "The permission players need to run the command"));
 			sender.sendMessage(keyValue("aliases", aliases, "Commands that do the same things as this command with a different name"));
@@ -289,9 +320,9 @@ public class CustomCommandCommand extends Command {
 				  var description = section.values().description();
 				  
 				  if(description != null)
-					  sender.sendMessage(Component.text(section.name()).append(Component.text(": ")).append(Component.text(description, NamedTextColor.YELLOW)));
+					  sender.sendMessage(Component.text(section.name()).append(Component.text(": ")).append(Component.text(description, YELLOW)));
 				  else
-					  sender.sendMessage(Component.text("This " + (section instanceof CustomCommand ? "command" : "command section") + " doesn't specify a description", NamedTextColor.RED));
+					  sender.sendMessage(Component.text("This " + (section instanceof CustomCommand ? "command" : "command section") + " doesn't specify a description", RED));
 				  
 				  return SUCCESS;
 			  });
@@ -321,7 +352,7 @@ public class CustomCommandCommand extends Command {
 		  .executes(ctx -> {
 			  var sender = ctx.getSource().getSender();
 			  
-			  sender.sendMessage(Component.text("Cooldowns", NamedTextColor.YELLOW));
+			  sender.sendMessage(Component.text("Cooldowns", YELLOW));
 			  
 			  for(var entry : CommandData.getData().entrySet()) {
 				  var name = entry.getKey().name();
@@ -332,18 +363,18 @@ public class CustomCommandCommand extends Command {
 				  
 				  sender.sendMessage(
 					 Component
-						.text("• ", NamedTextColor.GRAY)
-						.append(Component.text(name, NamedTextColor.WHITE))
+						.text("• ", GRAY)
+						.append(Component.text(name, WHITE))
 				  );
 				  
 				  for(var entry0 : lastExecutionTimes.entrySet()) {
 					  var owner = entry0.getKey();
 					  var lastExecutionTime = entry0.getValue();
 					  
-					  sender.sendMessage(Component.text("  ◦ ", NamedTextColor.GRAY)
-						 .append(Component.text(owner.displayName(), NamedTextColor.YELLOW))
-						 .append(Component.text(": ", NamedTextColor.WHITE))
-						 .append(Component.text(lastExecutionTime.formatRemaining(), NamedTextColor.YELLOW)));
+					  sender.sendMessage(Component.text("  ◦ ", GRAY)
+						 .append(Component.text(owner.displayName(), YELLOW))
+						 .append(Component.text(": ", WHITE))
+						 .append(Component.text(lastExecutionTime.formatRemaining(), YELLOW)));
 				  }
 			  }
 			  

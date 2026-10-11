@@ -1,5 +1,5 @@
 name: CustomCommand
-version: '2.4.2'
+version: '2.4.3'
 main: ontey.ccmd.Main
 api-version: '1.21'
 authors: [ Ontey ]
@@ -26,3 +26,4 @@ permissions:
       ccmd.command.custom-command.reload: true
       ccmd.command.custom-command.cooldowns: true
       ccmd.command.custom-command.cooldownless: true
+      ccmd.command.custom-command.version: true
