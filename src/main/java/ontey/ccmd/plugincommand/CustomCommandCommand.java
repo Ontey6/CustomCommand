@@ -314,7 +314,9 @@ public class CustomCommandCommand extends Command {
 			if(!section.values().enabled())
 				continue;
 			
+			var permission = section.values().permission();
 			var child = Arg.literal(section.name())
+			  .requires(source -> permission == null || source.getSender().hasPermission(permission))
 			  .executes(ctx -> {
 				  var sender = ctx.getSource().getSender();
 				  var description = section.values().description();
@@ -341,7 +343,7 @@ public class CustomCommandCommand extends Command {
 			  throw Arg.simpleException("No command or command section specified");
 		  });
 		
-		addHelpNodes(base, new ArrayList<>(CustomCommandRegistry.getRegisteredCommands()));
+		addHelpNodes(base, CustomCommandRegistry.getRegisteredCommands());
 		
 		return base;
 	}

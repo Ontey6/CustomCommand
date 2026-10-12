@@ -54,7 +54,6 @@ public final class CooldownManager {
 		}
 	}
 	
-	//TODO doesn't work
 	private static void saveCooldowns(@NonNull List<? extends CommandSectionLike> list, @NonNull ConfigSection currentSection) {
 		for(var section : list) {
 			var cooldownDuration = section.values().cooldown().duration();
