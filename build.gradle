@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.ontey"
-version = "2.4.3"
+version = "2.4.4"
 
 repositories {
    mavenCentral()
@@ -33,7 +33,7 @@ tasks.shadowJar {
 }
 
 dependencies {
-   paperweight.paperDevBundle("26.1.2.build.+")
+   paperweight.paperDevBundle("26.3.build.+")
 
    // OnteyAPI
    implementation("com.github.Ontey6.OnteyAPI:paper:2.3:all")

@@ -45,6 +45,8 @@ public final class Main extends OnteyPlugin {
 		load();
 		
 		Updater.checkForUpdates();
+		var fiveMinutes = 5L * 60L * 20L;
+		plugin.getScheduler().runTaskTimer(Updater::checkForUpdates, fiveMinutes, fiveMinutes);
 		new Metrics(this, BSTATS_METRICS_ID);
 	}
 	

@@ -41,9 +41,6 @@ public class Updater implements Listener {
 					Updater.latest = latest;
 					logger.warn("An update is available: {}", latest.version());
 					logger.warn("Download it using '/ccmd update'");
-				} else {
-					var fiveMinutes = 5L * 60L * 20L;
-					plugin.getScheduler().runTaskTimer(Updater::checkForUpdates, fiveMinutes, fiveMinutes);
 				}
 			} catch(Exception e) {
 				logger.error("[Updater] Could not check for updates: {}", e.getMessage());
